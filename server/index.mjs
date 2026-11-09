@@ -13,7 +13,7 @@
  * ⚠️ 当前 authenticate() 是占位实现，仅允许本机开发，禁止公网暴露。
  */
 import http from 'node:http'
-import { getHandlers, broadcast } from './electron-shim.mjs'
+import { getHandlers, broadcast, ipcMain } from './electron-shim.mjs'
 import { handleSse, sseClientCount } from './rpc/events.mjs'
 
 const HOST = process.env.HOST ?? '127.0.0.1'
@@ -30,6 +30,19 @@ async function loadControllers() {
     const mod = await import('../electron/ipc-handlers.ts')
     const result = mod.registerIPCHandlers()
     if (result && typeof result.then === 'function') await result
+
+    // 桌面版里 startup 通道由 main.ts 单独注册、不在 registerIPCHandlers() 内。
+    // 网页版没有 Electron 启动流程，这里补最小实现让 RendererStartup 能进入应用。
+    if (!getHandlers().has('startup:get-state')) {
+      ipcMain.handle('startup:get-state', () => ({
+        state: 'ready',
+        globalGeneration: 'web-p1',
+      }))
+    }
+    if (!getHandlers().has('startup:appearance-ack')) {
+      ipcMain.handle('startup:appearance-ack', () => true)
+    }
+
     controllerStatus = `loaded (${getHandlers().size} channels)`
   } catch (error) {
     controllerStatus = `FAILED: ${error?.message ?? String(error)}`
@@ -88,6 +101,7 @@ function makeEvent(userId) {
     sender: {
       id: 1,
       isDestroyed: () => false,
+      once: () => undefined,
       send(channel, ...payload) {
         broadcast(channel, payload.length <= 1 ? payload[0] : payload)
       },
