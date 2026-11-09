@@ -1,6 +1,6 @@
 中文 | English
 
-MyNovel Web
+小书童
 网页版 AI 小说写作工具 —— 从设定、大纲到正文，一章一章把书写完
 
 网页版正在改造中，上线后的访问地址将在仓库首页与网站公示。
@@ -12,8 +12,8 @@ MyNovel Web
 原项目由 EthanYoQ 及其贡献者维护，以 GPL-3.0 协议开源，原项目的版权归原作者及贡献者所有。
 本项目同样以 GPL-3.0 协议开源，完整许可文本见本仓库根目录的 LICENSE，该文件保持原样未作修改。
 原项目中的版权与许可声明均予以保留；本项目不对原代码主张所有权，也未获得原作者的商业例外授权。
-商标说明：「Pagekin」「书童」及原项目 Logo 归原项目所有，本项目不使用其名称与标识作为自身品牌，也不代表原项目官方。
-「MyNovel Web」及其标识为本运营方自有品牌，不属于 GPL 授权范围。
+商标说明：「Pagekin」「书童 Pagekin」及原项目 Logo 归原项目所有。本项目使用自有品牌「小书童」，不使用原项目 Logo，也不代表原项目官方；所有对外页面均标注「非官方衍生版本」以避免混淆。
+「小书童」及其标识为本运营方自有品牌，不属于 GPL 授权范围；原项目未授权、也未参与本项目的运营。
 本项目的修改记录
 日期	修改内容	修改者
 2026-11-09	Fork 原项目 v1.4.0，变更项目名称与品牌标识，新增本声明	banceboy
@@ -68,8 +68,8 @@ Google Gemini 原生协议
 
 git clone https://github.com/banceboy/my-novel-web.git
 cd my-novel-web
-pnpm install --frozen-lockfile 
-pnpm dev 
+pnpm install --frozen-lockfile
+pnpm dev
 所有密钥通过环境变量或本地 .env 提供，.env 已被 .gitignore 排除，请勿提交任何密钥。
 
 六、参与贡献
