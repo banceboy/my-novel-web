@@ -13,6 +13,7 @@
  * P3 阶段需把事件广播按 userId 隔离。
  */
 import { EventEmitter } from 'node:events'
+import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 
 const handlers = new Map()
@@ -122,8 +123,24 @@ export const app = {
   exit() {},
 }
 
+/** 网页版工作区：作品统一存放在服务器的 DATA_ROOT/projects 下，不需要用户挑文件夹 */
+function webProjectsRoot() {
+  const root = path.resolve(dataRoot(), 'projects')
+  mkdirSync(root, { recursive: true })
+  return root
+}
+
 export const dialog = {
-  showOpenDialog: async () => ({ canceled: true, filePaths: [] }),
+  showOpenDialog: async (options = {}) => {
+    const properties = Array.isArray(options?.properties) ? options.properties : []
+    // 目录选择（新建/打开作品、导入旧项目）→ 自动返回服务端工作区目录。
+    // 目录必须真实存在：ExternalFileGrantService.issueDirectory 会 realpathSync 校验。
+    if (properties.includes('openDirectory')) {
+      return { canceled: false, filePaths: [webProjectsRoot()] }
+    }
+    // 选择文件（导入小说、角色卡、Skill 等）→ 网页版需改成上传，暂返回取消。
+    return { canceled: true, filePaths: [] }
+  },
   showOpenDialogSync: () => [],
   showSaveDialog: async () => ({ canceled: true, filePath: undefined }),
   showMessageBox: async () => ({ response: 0, checkboxChecked: false }),
