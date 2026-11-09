@@ -33,10 +33,11 @@
 | 2026-11-09 | 新增网页版通信层适配骨架（7 个文件）：`src/services/ipc-client.web.ts` 及 `server/` 下 6 个模块；用 Node ESM loader、TypeScript 完整转译与 Electron 适配桩，在服务端复用原 285 个 IPC 通道，新增 `/api/rpc`、`/api/events`、`/api/health` | banceboy |
 | 2026-11-09 | 新增 `vite.web.config.ts`：网页构建时把 IPC 客户端重定向到网页版实现、不加载 Electron 插件、将 `/api` 代理到 RPC 服务；`server/index.mjs` 补两个启动通道并修正确认返回值，解决网页启动阻塞 | banceboy |
 | 2026-11-09 | 网页版「新建作品」改为服务端自动分配目录：`server/electron-shim.mjs` 的目录选择返回 `DATA_ROOT/projects`，`server/index.mjs` 补 `sender.once`，`vite.web.config.ts` 忽略运行时 `data/` 目录；实测中文书名创建成功 | banceboy |
+| 2026-11-09 | 新增网页版文件桥接：浏览器原生文件选择器 → `/api/upload` 上传 → 服务端授权队列接回原导入流程；新增 `/api/dialog-intent`（导出目录意图，10 秒有效）、`/api/files/state`、`/api/download/latest` 下载端点，导出类通道成功后自动触发下载。涉及 `src/services/ipc-client.web.ts`、`server/index.mjs`、`server/electron-shim.mjs` | banceboy |
 
 > 本表在每次代码改动时补一行（由助手维护本文件，维护者统一上传）；每次发布新版本在仓库打对应 tag，保证线上版本与源码一致。
 >
-> 下列为**规划中、尚未实施**的内容，不计入上表：账号体系与多租户隔离、计费额度与任务队列、导入/导出改为上传与下载、正式部署上线。
+> 下列为**规划中、尚未实施**的内容，不计入上表：账号体系与多租户隔离、计费额度与任务队列、SSE 事件按用户定向、正式部署上线。
 
 ### 完整源码
 
