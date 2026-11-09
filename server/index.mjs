@@ -13,12 +13,19 @@
  * ⚠️ 当前 authenticate() 是占位实现，仅允许本机开发，禁止公网暴露。
  */
 import http from 'node:http'
-import { getHandlers, broadcast, ipcMain } from './electron-shim.mjs'
+import path from 'node:path'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { randomUUID } from 'node:crypto'
+import {
+  getHandlers, broadcast, ipcMain, webPaths, queueSelectedFiles,
+  setDirectoryPurpose, getLatestExport,
+} from './electron-shim.mjs'
 import { handleSse, sseClientCount } from './rpc/events.mjs'
 
 const HOST = process.env.HOST ?? '127.0.0.1'
 const PORT = Number(process.env.PORT ?? 8787)
-const MAX_BODY = 8 * 1024 * 1024
+// 导入小说 / 备份包可能较大；浏览器上传走 base64，留足余量
+const MAX_BODY = 64 * 1024 * 1024
 
 let controllerStatus = 'not-loaded'
 
@@ -152,6 +159,80 @@ async function handleRpc(req, res) {
   }
 }
 
+/** 浏览器选中的文件先上传到这里，路径入队供 controller 的 showOpenDialog 消费 */
+async function handleUpload(req, res) {
+  let body
+  try {
+    body = await readJson(req)
+  } catch (error) {
+    sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: error?.message ?? 'bad json' } })
+    return
+  }
+  const files = Array.isArray(body?.files) ? body.files : []
+  if (files.length === 0) {
+    sendJson(res, 400, { ok: false, error: { code: 'NO_FILES', message: '没有收到文件' } })
+    return
+  }
+  const { uploads } = webPaths()
+  const paths = []
+  for (const file of files.slice(0, 20)) {
+    const safeName = path.basename(String(file?.name ?? 'upload.txt'))
+      .replace(/[^\w.\-\u4e00-\u9fa5]/gu, '_').slice(0, 120) || 'upload.txt'
+    const target = path.join(uploads, `${randomUUID()}-${safeName}`)
+    try {
+      writeFileSync(target, Buffer.from(String(file?.contentBase64 ?? ''), 'base64'))
+      paths.push(target)
+    } catch (error) {
+      console.error('[upload] 写入失败:', error)
+    }
+  }
+  if (paths.length === 0) {
+    sendJson(res, 500, { ok: false, error: { code: 'UPLOAD_WRITE_FAILED', message: '文件写入失败' } })
+    return
+  }
+  queueSelectedFiles(paths)
+  sendJson(res, 200, { ok: true, count: paths.length })
+}
+
+/** 前端声明下一次「目录选择」的用途：导出目标 → exports，其余 → projects */
+async function handleDialogIntent(req, res) {
+  let body = {}
+  try {
+    body = await readJson(req)
+  } catch {
+    // 空 body 按默认处理
+  }
+  setDirectoryPurpose(String(body?.purpose ?? ''))
+  sendJson(res, 200, { ok: true })
+}
+
+/** 把服务端生成的最近一次导出文件下载回浏览器 */
+function handleDownload(res) {
+  const filePath = getLatestExport()
+  if (!filePath || !existsSync(filePath)) {
+    sendJson(res, 404, { ok: false, error: { code: 'NO_EXPORT', message: '还没有可下载的导出文件' } })
+    return
+  }
+  const name = path.basename(filePath).replace(/^[0-9a-f-]{36}-/iu, '')
+  const data = readFileSync(filePath)
+  res.writeHead(200, {
+    'Content-Type': 'application/octet-stream',
+    'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
+    'Content-Length': data.length,
+    'Cache-Control': 'no-store',
+  })
+  res.end(data)
+}
+
+function handleFilesState(res) {
+  const latest = getLatestExport()
+  sendJson(res, 200, {
+    ok: true,
+    latestExport: latest ? path.basename(latest) : null,
+    latestExportReady: Boolean(latest && existsSync(latest)),
+  })
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url ?? '/', `http://${HOST}:${PORT}`)
 
@@ -173,6 +254,26 @@ const server = http.createServer((req, res) => {
       controllers: controllerStatus,
       sseClients: sseClientCount(),
     })
+    return
+  }
+
+  if (url.pathname === '/api/upload' && req.method === 'POST') {
+    void handleUpload(req, res)
+    return
+  }
+
+  if (url.pathname === '/api/dialog-intent' && req.method === 'POST') {
+    void handleDialogIntent(req, res)
+    return
+  }
+
+  if (url.pathname === '/api/download/latest' && req.method === 'GET') {
+    handleDownload(res)
+    return
+  }
+
+  if (url.pathname === '/api/files/state' && req.method === 'GET') {
+    handleFilesState(res)
     return
   }
 
