@@ -43,6 +43,7 @@
 | 2026-11-09 | P3 配额与任务队列：新增 `server/quota.mjs`（每日 AI 调用额度、单文件与累计存储上限、全局并发闸门、每账号串行、排队超时），管理员可通过 `auth-cli` 或 `/api/admin/users` 调整；`/api/quota` 查询用量 | banceboy |
 | 2026-11-09 | 生产运行形态与部署：`vite.web.config.ts` 增加 `dist-web` 产物；新增 `server/static.mjs`（单端口静态托管、gzip、缓存、CSP nonce 与安全头）、`Dockerfile`、`.dockerignore`、`docker-compose.yml`、`.env.example`、`deploy/Caddyfile.example`、`scripts/web-smoke.mjs`；网页构建与部署不再需要 Vite dev server 或 Electron 运行时 | banceboy |
 | 2026-11-09 | 安全加固与上线修复：网关与租户进程间共享密钥、CSRF 来源校验（生产不隐式信任开发源）、上传路径双重防穿越、健康检查脱敏、内部错误泛化、上传/导出目录启动清理、会话同步落盘（强杀重启不掉线）、favicon 内联消除 404；`index.html`、`src/main.tsx`、`package.json`、`.gitignore` 同步调整 | banceboy |
+| 2026-11-10 | 修复账号管理热生效：`server/auth-cli.mjs` 是独立进程，此前改密码 / 禁用 / 加账号都要重启网关才起作用；`server/auth.mjs` 现在按账号库与会话库磁盘指纹惰性重载，管理操作立即生效并吊销该账号的旧会话（12 项实测通过）；本机回归测试账号已清理，只保留管理员账号 | banceboy |
 
 > 本表在每次代码改动时补一行（由助手维护本文件，维护者统一上传）；每次发布新版本在仓库打对应 tag，保证线上版本与源码一致。
 >
