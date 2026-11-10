@@ -49,15 +49,22 @@ function webIpcClientBridge() {
 }
 
 export default defineConfig({
-  base: './',
+  // 生产由网关单端口托管 dist-web/，资源用绝对路径；开发仍走 5180 代理
+  base: process.env.VITE_BASE ?? '/',
   plugins: [webIpcClientBridge(), tailwindcss(), react()],
   publicDir: 'public',
+  build: {
+    outDir: 'dist-web',
+    emptyOutDir: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 2000,
+  },
   server: {
     host: '127.0.0.1',
     port: 5180,
     strictPort: true,
     watch: {
-      ignored: ['**/docs/**', '**/data/**'],
+      ignored: ['**/docs/**', '**/data/**', '**/dist-web/**'],
     },
     proxy: {
       '/api': {

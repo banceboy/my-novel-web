@@ -1,0 +1,16 @@
+# 反向代理样例：Caddy 自动申请并续期 HTTPS 证书。
+# 把 novel.example.com 换成真实域名，确认 DNS 已解析到本机后：
+#   caddy run --config deploy/Caddyfile.example
+# 若用 Nginx，等价配置是 proxy_pass http://127.0.0.1:8787 + 转发 X-Forwarded-Proto。
+
+novel.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:8787 {
+		header_up X-Forwarded-Proto https
+		# SSE 需要关闭响应缓冲
+		flush_interval -1
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+	}
+}

@@ -1,0 +1,22 @@
+services:
+  web:
+    build: .
+    image: xiaoshutong-web:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_ROOT: /data
+      XST_TENANT_ROOT_BASE: /tenants
+      STATIC_ROOT: /app/dist-web
+    volumes:
+      - ./runtime/data:/data
+      - ./runtime/tenants:/tenants
+    ports:
+      # 只绑回环，HTTPS 由外部 Caddy / Nginx 终止；不要直接把 8787 暴露公网
+      - "127.0.0.1:8787:8787"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3

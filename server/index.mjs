@@ -1,300 +1,348 @@
 /**
- * P1 网页版 RPC 服务入口（零新增依赖，Node 原生 http）。
+ * 小书童网页版网关（生产入口）。
  *
- * 启动：
- *   node --import ./server/register.mjs server/index.mjs
+ * 启动：node server/index.mjs
+ *   - 会话鉴权：HttpOnly Cookie，服务端持有会话；用户无法自报 userId
+ *   - 多租户：每个账号 fork 一个独立 RPC 进程，进程内数据根与模块状态完全隔离
+ *   - 配额/任务队列：每日 AI 额度、上传/存储上限、全局并发与每用户串行
+ *   - 单端口提供静态页面 + /api，不需要 Vite dev server
  *
- * 端到端跑通还需：
- *   - 前端 vite.config.ts 把 @/services/ipc-client 别名指向 ipc-client.web.ts
- *   - Vite dev server 把 /api 代理到本服务（默认 127.0.0.1:8787）
- *   - P2 完成 Electron 依赖解耦（本服务已用 shim 覆盖大部分，剩余为文件路径/事件定向）
- *   - P3 实现真正的鉴权与多租户
- *
- * ⚠️ 当前 authenticate() 是占位实现，仅允许本机开发，禁止公网暴露。
+ * 开发时仍可用 Vite dev server（5180）把 /api 代理到这里。
+ * 环境变量见 .env.example。
  */
 import http from 'node:http'
 import path from 'node:path'
-import { existsSync, readFileSync, writeFileSync } from 'node:fs'
-import { randomUUID } from 'node:crypto'
+import { mkdirSync } from 'node:fs'
+import { randomBytes } from 'node:crypto'
 import {
-  getHandlers, broadcast, ipcMain, webPaths, queueSelectedFiles,
-  setDirectoryPurpose, getLatestExport,
-} from './electron-shim.mjs'
-import { handleSse, sseClientCount } from './rpc/events.mjs'
+  initAuth, authenticate, login, logout, sessionCookie,
+  clearSessionCookie, authStats, createUser, setDisabled, setPassword,
+  setQuota, listUsers,
+} from './auth.mjs'
+import { TenantPool } from './tenant-pool.mjs'
+import { QuotaManager, QuotaError } from './quota.mjs'
+import { StaticHost, securityHeaders } from './static.mjs'
 
 const HOST = process.env.HOST ?? '127.0.0.1'
 const PORT = Number(process.env.PORT ?? 8787)
-// 导入小说 / 备份包可能较大；浏览器上传走 base64，留足余量
-const MAX_BODY = 64 * 1024 * 1024
+const DATA_ROOT = path.resolve(process.env.DATA_ROOT ?? './data')
+const PUBLIC_ORIGIN = process.env.PUBLIC_ORIGIN ?? `http://${HOST}:${PORT}`
+const STATIC_ROOT = path.resolve(process.env.STATIC_ROOT ?? './dist-web')
+const MAX_AUTH_BODY = 16 * 1024
+const MAX_RPC_BODY = 32 * 1024 * 1024
+// 网关与租户进程之间的共享密钥：即使本机其它进程直连回环端口也无法冒充网关
+const INTERNAL_TOKEN = process.env.XST_INTERNAL_TOKEN || randomBytes(32).toString('hex')
 
-let controllerStatus = 'not-loaded'
-
-async function loadControllers() {
-  try {
-    const { prepareGlobalRuntime } = await import('./bootstrap.mjs')
-    const runtime = await prepareGlobalRuntime()
-    console.log(`[P1] 全局数据已就绪: ${runtime.root}`)
-    const mod = await import('../electron/ipc-handlers.ts')
-    const result = mod.registerIPCHandlers()
-    if (result && typeof result.then === 'function') await result
-
-    // 桌面版里 startup 通道由 main.ts 单独注册、不在 registerIPCHandlers() 内。
-    // 网页版没有 Electron 启动流程，这里补最小实现让 RendererStartup 能进入应用。
-    if (!getHandlers().has('startup:get-state')) {
-      ipcMain.handle('startup:get-state', () => ({
-        state: 'ready',
-        globalGeneration: 'web-p1',
-      }))
-    }
-    if (!getHandlers().has('startup:appearance-ack')) {
-      ipcMain.handle('startup:appearance-ack', () => true)
-    }
-
-    controllerStatus = `loaded (${getHandlers().size} channels)`
-  } catch (error) {
-    controllerStatus = `FAILED: ${error?.message ?? String(error)}`
-    console.error('[P1] 原 controllers 加载失败。常见原因：')
-    console.error('     1) Node 未能直接加载 TS（改用 `npm i -D tsx` 并以 --import tsx 启动）')
-    console.error('     2) controllers 里存在 P2 尚未解耦的 Electron/文件系统行为')
-    console.error('     3) TS 源码使用了 @/ 路径别名，Node 无法解析')
-    console.error('     原始错误：', error)
-  }
+try {
+  mkdirSync(DATA_ROOT, { recursive: true })
+  initAuth()
+} catch (error) {
+  console.error(`[web] 启动失败（数据目录或账号库不可用）: ${error?.message ?? error}`)
+  process.exit(1)
 }
 
-await loadControllers()
+const pool = new TenantPool({ dataRoot: DATA_ROOT, internalToken: INTERNAL_TOKEN })
+const quota = new QuotaManager({ dataRoot: DATA_ROOT })
+const staticHost = new StaticHost(STATIC_ROOT)
+const isProduction = process.env.NODE_ENV === 'production'
 
-function sendJson(res, status, value) {
+function isSecure(req) {
+  if (new URL(PUBLIC_ORIGIN).protocol === 'https:') return true
+  // 只有明确声明信任反向代理时才采信转发头，避免客户端伪造影响 Cookie 属性
+  return process.env.TRUST_PROXY === 'true' && req.headers['x-forwarded-proto'] === 'https'
+}
+
+function sendJson(res, status, value, extraHeaders = {}) {
   const body = JSON.stringify(value)
   res.writeHead(status, {
     'Content-Type': 'application/json; charset=utf-8',
     'Content-Length': Buffer.byteLength(body),
     'Cache-Control': 'no-store',
+    ...extraHeaders,
   })
   res.end(body)
 }
 
-function readJson(req) {
+function readBody(req, limit) {
   return new Promise((resolve, reject) => {
     let size = 0
     const chunks = []
-    req.on('data', (chunk) => {
+    req.on('data', chunk => {
       size += chunk.length
-      if (size > MAX_BODY) {
-        reject(new Error('REQUEST_TOO_LARGE'))
+      if (size > limit) {
+        reject(new QuotaError(413, 'REQUEST_TOO_LARGE', '请求体过大'))
         req.destroy()
         return
       }
       chunks.push(chunk)
     })
-    req.on('end', () => {
-      try {
-        resolve(JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'))
-      } catch {
-        reject(new Error('INVALID_JSON'))
-      }
-    })
+    req.on('end', () => resolve(Buffer.concat(chunks)))
     req.on('error', reject)
   })
 }
 
-/** TODO(P3)：换成真实会话校验；当前固定为本地开发用户 */
-function authenticate() {
-  return { userId: 'dev-user' }
+function csrfOk(req) {
+  if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) return true
+  const origin = req.headers.origin
+  if (!origin) return true // SameSite=Strict 兜底；CLI / curl 不带 Origin
+  let parsed
+  try { parsed = new URL(origin) }
+  catch { return false }
+  if (parsed.origin === new URL(PUBLIC_ORIGIN).origin) return true
+  // 生产环境不隐式信任任何开发源；必须显式配置 ALLOWED_ORIGINS
+  const defaultAllowed = isProduction ? '' : 'http://127.0.0.1:5180'
+  const allowed = (process.env.ALLOWED_ORIGINS ?? defaultAllowed)
+    .split(',').map(item => item.trim()).filter(Boolean)
+  if (allowed.includes(parsed.origin)) return true
+  if (!isProduction && ['127.0.0.1', 'localhost'].includes(parsed.hostname)) return true
+  return false
 }
 
-/** 模拟 IpcMainInvokeEvent，使 controller 里的 event.sender.send 可用 */
-function makeEvent(userId) {
-  return {
-    sender: {
-      id: 1,
-      isDestroyed: () => false,
-      once: () => undefined,
-      send(channel, ...payload) {
-        broadcast(channel, payload.length <= 1 ? payload[0] : payload)
-      },
-    },
-    frameId: 1,
-    processId: 0,
-    userId,
-  }
-}
-
-async function handleRpc(req, res) {
-  let body
-  try {
-    body = await readJson(req)
-  } catch (error) {
-    sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: error.message } })
-    return
-  }
-
-  const { channel, args, projectSession } = body
-  if (typeof channel !== 'string') {
-    sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: '缺少 channel' } })
-    return
-  }
-
-  const handler = getHandlers().get(channel)
-  if (!handler) {
-    sendJson(res, 404, {
+async function handleLogin(req, res) {
+  let payload
+  try { payload = JSON.parse((await readBody(req, MAX_AUTH_BODY)).toString('utf8') || '{}') }
+  catch { sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST' } }); return }
+  const result = login(req, payload?.username, payload?.password)
+  if (result.error) {
+    sendJson(res, result.error === 'TOO_MANY_ATTEMPTS' ? 429 : 401, {
       ok: false,
-      error: { code: 'UNKNOWN_CHANNEL', message: `未注册通道: ${channel}；已注册 ${getHandlers().size} 个` },
+      error: { code: result.error, message: result.error === 'TOO_MANY_ATTEMPTS' ? '尝试过多，请稍后再试' : '账号或口令错误' },
     })
+    return
+  }
+  sendJson(res, 200, { ok: true, user: result.user }, {
+    'Set-Cookie': sessionCookie(result.token, isSecure(req)),
+  })
+}
+
+/** 管理员账号管理：仅 admin 会话可用，避免 CLI 与运行中的网关同时改 users.json */
+async function handleAdmin(req, res, url, user) {
+  if (user.role !== 'admin') {
+    sendJson(res, 403, { ok: false, error: { code: 'FORBIDDEN', message: '需要管理员权限' } })
+    return
+  }
+  if (url.pathname === '/api/admin/users' && req.method === 'GET') {
+    sendJson(res, 200, { ok: true, users: listUsers() })
+    return
+  }
+  if (url.pathname === '/api/admin/users' && req.method === 'POST') {
+    let body
+    try { body = JSON.parse((await readBody(req, MAX_AUTH_BODY)).toString('utf8') || '{}') }
+    catch { sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST' } }); return }
+    try {
+      switch (body?.action) {
+        case 'create':
+          createUser(body.username, body.password, body.role === 'admin' ? 'admin' : 'user', body.quota)
+          break
+        case 'passwd':
+          setPassword(body.username, body.password)
+          break
+        case 'disable':
+        case 'enable':
+          setDisabled(body.username, body.action === 'disable')
+          break
+        case 'quota':
+          setQuota(body.username, body.quota)
+          break
+        default:
+          sendJson(res, 400, { ok: false, error: { code: 'UNKNOWN_ACTION' } })
+          return
+      }
+      sendJson(res, 200, { ok: true, users: listUsers() })
+    } catch (error) {
+      sendJson(res, 400, { ok: false, error: { code: error?.message ?? 'ADMIN_FAILED' } })
+    }
+    return
+  }
+  sendJson(res, 404, { ok: false, error: { code: 'NOT_FOUND' } })
+}
+
+function proxy(req, res, { port, userId, bodyBuffer, maxUpload, release }) {
+  const headers = { ...req.headers }
+  // 会话 cookie 不出网关；所有客户端自报身份/内部凭据的头全部丢弃后重新注入
+  delete headers.cookie
+  delete headers['x-web-user']
+  delete headers['x-xst-user']
+  delete headers['x-xst-token']
+  delete headers['x-xst-role']
+  delete headers['x-xst-max-upload']
+  delete headers['x-forwarded-proto']
+  headers.host = `127.0.0.1:${port}`
+  headers['x-xst-user'] = userId
+  headers['x-xst-token'] = INTERNAL_TOKEN
+  if (maxUpload) headers['x-xst-max-upload'] = String(maxUpload)
+  if (bodyBuffer) headers['content-length'] = String(Buffer.byteLength(bodyBuffer))
+
+  const upstream = http.request({
+    host: '127.0.0.1', port, path: req.url, method: req.method, headers,
+  }, upstreamRes => {
+    const outHeaders = { ...upstreamRes.headers }
+    delete outHeaders.connection
+    delete outHeaders['transfer-encoding']
+    delete outHeaders['keep-alive']
+    res.writeHead(upstreamRes.statusCode ?? 502, outHeaders)
+    upstreamRes.pipe(res)
+    upstreamRes.on('end', release)
+    upstreamRes.on('close', release)
+  })
+  upstream.on('error', error => {
+    release()
+    console.error('[web] 租户进程连接失败:', error)
+    if (!res.headersSent) {
+      sendJson(res, 502, { ok: false, error: { code: 'TENANT_UNAVAILABLE', message: '服务暂时不可用，请稍后重试' } })
+    } else {
+      res.end()
+    }
+  })
+  if (bodyBuffer) upstream.end(bodyBuffer)
+  else req.pipe(upstream)
+}
+
+async function handleApi(req, res, url) {
+  if (url.pathname === '/api/health') {
+    const detailed = Boolean(authenticate(req))
+    sendJson(res, 200, {
+      status: 'ok',
+      staticReady: staticHost.available,
+      ...(detailed ? {
+        tenants: pool.stats().tenants,
+        tenantRoot: pool.tenantBase,
+        quota: quota.stats(),
+        accounts: authStats().users,
+      } : {}),
+    })
+    return
+  }
+  if (url.pathname === '/api/auth/status') {
+    const user = authenticate(req)
+    sendJson(res, 200, { ok: true, authenticated: Boolean(user), user })
+    return
+  }
+  if (url.pathname === '/api/auth/login' && req.method === 'POST') {
+    await handleLogin(req, res)
+    return
+  }
+  if (url.pathname === '/api/auth/logout' && req.method === 'POST') {
+    logout(req)
+    sendJson(res, 200, { ok: true }, { 'Set-Cookie': clearSessionCookie(isSecure(req)) })
     return
   }
 
   const user = authenticate(req)
-  const tail = Array.isArray(args) ? [...args] : []
-  if (projectSession !== undefined) tail.push(projectSession)
-
-  try {
-    const data = await handler(makeEvent(user.userId), ...tail)
-    sendJson(res, 200, { ok: true, data: data ?? null })
-  } catch (error) {
-    console.error(`[rpc] ${channel} 失败:`, error)
-    sendJson(res, 500, {
-      ok: false,
-      error: { code: 'HANDLER_ERROR', message: error?.message ?? String(error) },
-    })
-  }
-}
-
-/** 浏览器选中的文件先上传到这里，路径入队供 controller 的 showOpenDialog 消费 */
-async function handleUpload(req, res) {
-  let body
-  try {
-    body = await readJson(req)
-  } catch (error) {
-    sendJson(res, 400, { ok: false, error: { code: 'BAD_REQUEST', message: error?.message ?? 'bad json' } })
+  if (!user) {
+    sendJson(res, 401, { ok: false, error: { code: 'UNAUTHORIZED', message: '请先登录' } })
     return
   }
-  const files = Array.isArray(body?.files) ? body.files : []
-  if (files.length === 0) {
-    sendJson(res, 400, { ok: false, error: { code: 'NO_FILES', message: '没有收到文件' } })
+  if (url.pathname === '/api/quota') {
+    sendJson(res, 200, { ok: true, usage: quota.usage(user.id, user.quota) })
     return
   }
-  const { uploads } = webPaths()
-  const paths = []
-  for (const file of files.slice(0, 20)) {
-    const safeName = path.basename(String(file?.name ?? 'upload.txt'))
-      .replace(/[^\w.\-\u4e00-\u9fa5]/gu, '_').slice(0, 120) || 'upload.txt'
-    const target = path.join(uploads, `${randomUUID()}-${safeName}`)
-    try {
-      writeFileSync(target, Buffer.from(String(file?.contentBase64 ?? ''), 'base64'))
-      paths.push(target)
-    } catch (error) {
-      console.error('[upload] 写入失败:', error)
+  if (url.pathname.startsWith('/api/admin/')) {
+    await handleAdmin(req, res, url, user)
+    return
+  }
+  let bodyBuffer = null
+  let channel = ''
+  let maxUpload = 0
+  const activeQuota = user.quota ?? {}
+  try {
+    if (url.pathname === '/api/rpc') {
+      bodyBuffer = await readBody(req, MAX_RPC_BODY)
+      try { channel = String(JSON.parse(bodyBuffer.toString('utf8')).channel ?? '') }
+      catch { sendJson(res, 400, { ok: false, error: { code: 'INVALID_JSON' } }); return }
+    } else if (url.pathname === '/api/upload/stream') {
+      const size = Number(req.headers['content-length'] ?? 0)
+      quota.chargeUpload(user.id, activeQuota, size)
+      maxUpload = Math.max(1, Number(activeQuota.maxUploadBytes ?? 50 * 1024 * 1024))
     }
-  }
-  if (paths.length === 0) {
-    sendJson(res, 500, { ok: false, error: { code: 'UPLOAD_WRITE_FAILED', message: '文件写入失败' } })
+  } catch (error) {
+    const status = error instanceof QuotaError ? error.status : 400
+    sendJson(res, status, { ok: false, error: { code: error.code ?? 'BAD_REQUEST', message: error.message } })
     return
   }
-  queueSelectedFiles(paths)
-  sendJson(res, 200, { ok: true, count: paths.length })
-}
 
-/** 前端声明下一次「目录选择」的用途：导出目标 → exports，其余 → projects */
-async function handleDialogIntent(req, res) {
-  let body = {}
+  let lease
   try {
-    body = await readJson(req)
-  } catch {
-    // 空 body 按默认处理
-  }
-  setDirectoryPurpose(String(body?.purpose ?? ''))
-  sendJson(res, 200, { ok: true })
-}
-
-/** 把服务端生成的最近一次导出文件下载回浏览器 */
-function handleDownload(res) {
-  const filePath = getLatestExport()
-  if (!filePath || !existsSync(filePath)) {
-    sendJson(res, 404, { ok: false, error: { code: 'NO_EXPORT', message: '还没有可下载的导出文件' } })
+    // SSE 是长连接，不能占住并发闸门或用户串行链，否则会卡死同账号的后续请求
+    lease = url.pathname === '/api/events'
+      ? { release: () => {} }
+      : await quota.acquire(user.id, { channel, quota: activeQuota })
+  } catch (error) {
+    const status = error instanceof QuotaError ? error.status : 503
+    sendJson(res, status, { ok: false, error: { code: error.code ?? 'QUEUE_ERROR', message: error.message } })
     return
   }
-  const name = path.basename(filePath).replace(/^[0-9a-f-]{36}-/iu, '')
-  const data = readFileSync(filePath)
-  res.writeHead(200, {
-    'Content-Type': 'application/octet-stream',
-    'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(name)}`,
-    'Content-Length': data.length,
-    'Cache-Control': 'no-store',
-  })
-  res.end(data)
-}
 
-function handleFilesState(res) {
-  const latest = getLatestExport()
-  sendJson(res, 200, {
-    ok: true,
-    latestExport: latest ? path.basename(latest) : null,
-    latestExportReady: Boolean(latest && existsSync(latest)),
-  })
+  let port
+  try {
+    port = await pool.get(user.id)
+  } catch (error) {
+    console.error('[web] 租户进程启动失败:', error)
+    lease.release()
+    sendJson(res, 503, { ok: false, error: { code: 'TENANT_START_FAILED', message: '工作区暂时不可用，请稍后重试' } })
+    return
+  }
+
+  pool.begin(user.id)
+  let released = false
+  const release = () => {
+    if (released) return
+    released = true
+    lease.release()
+    pool.end(user.id)
+  }
+  res.on('finish', release)
+  res.on('close', release)
+  proxy(req, res, { port, userId: user.id, bodyBuffer, maxUpload, release })
 }
 
 const server = http.createServer((req, res) => {
-  const url = new URL(req.url ?? '/', `http://${HOST}:${PORT}`)
-
+  const nonce = randomBytes(16).toString('base64url')
+  for (const [key, value] of Object.entries(securityHeaders({ secure: isSecure(req), nonce }))) {
+    res.setHeader(key, value)
+  }
+  const url = new URL(req.url ?? '/', PUBLIC_ORIGIN)
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': url.origin,
-      'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-      'Access-Control-Allow-Credentials': 'true',
-    })
+    res.writeHead(204, { 'Access-Control-Allow-Methods': 'GET,POST,OPTIONS' })
     res.end()
     return
   }
-
-  if (url.pathname === '/api/health') {
-    sendJson(res, 200, {
-      status: 'ok',
-      channels: getHandlers().size,
-      controllers: controllerStatus,
-      sseClients: sseClientCount(),
+  // 所有状态变更请求统一校验来源；SameSite=Strict 之外再加一道显式防线
+  if (!csrfOk(req)) {
+    sendJson(res, 403, { ok: false, error: { code: 'CSRF_REJECTED', message: '请求来源不被允许' } })
+    return
+  }
+  if (url.pathname.startsWith('/api/')) {
+    void handleApi(req, res, url).catch(error => {
+      console.error('[web] 请求处理失败:', error)
+      if (!res.headersSent) {
+        sendJson(res, 500, { ok: false, error: { code: 'GATEWAY_ERROR', message: '服务内部错误' } })
+      }
     })
     return
   }
-
-  if (url.pathname === '/api/upload' && req.method === 'POST') {
-    void handleUpload(req, res)
-    return
-  }
-
-  if (url.pathname === '/api/dialog-intent' && req.method === 'POST') {
-    void handleDialogIntent(req, res)
-    return
-  }
-
-  if (url.pathname === '/api/download/latest' && req.method === 'GET') {
-    handleDownload(res)
-    return
-  }
-
-  if (url.pathname === '/api/files/state' && req.method === 'GET') {
-    handleFilesState(res)
-    return
-  }
-
-  if (url.pathname === '/api/events' && req.method === 'GET') {
-    handleSse(req, res, authenticate(req).userId)
-    return
-  }
-
-  if (url.pathname === '/api/rpc' && req.method === 'POST') {
-    void handleRpc(req, res)
-    return
-  }
-
-  sendJson(res, 404, { ok: false, error: { code: 'NOT_FOUND', message: url.pathname } })
+  staticHost.serve(req, res, url, nonce)
 })
 
 server.listen(PORT, HOST, () => {
-  console.log(`[P1] RPC 服务已启动: http://${HOST}:${PORT}`)
-  console.log(`[P1] controllers: ${controllerStatus}`)
-  console.log(`[P1] 健康检查: http://${HOST}:${PORT}/api/health`)
-  if (HOST !== '127.0.0.1' && HOST !== 'localhost') {
-    console.warn('[P1] ⚠️ 鉴权尚未实现（P3），请勿将本服务暴露到公网')
+  console.log(`[web] 网关已启动: http://${HOST}:${PORT}`)
+  console.log(`[web] 数据根: ${DATA_ROOT}`)
+  console.log(`[web] 租户根: ${pool.tenantBase}`)
+  const sampleProject = path.join(pool.tenantBase, 'u_00000000000000000000', 'projects', '示例作品名称')
+  if (sampleProject.length > 80) {
+    console.warn('[web] ⚠️ 租户根路径过长，Windows 上新建作品会被原项目的 85 字符路径闸门拒绝；请设置 XST_TENANT_ROOT_BASE 指向短目录')
+  }
+  console.log(`[web] 静态产物: ${STATIC_ROOT} (${staticHost.available ? '就绪' : '未构建'})`)
+  console.log(`[web] PUBLIC_ORIGIN=${PUBLIC_ORIGIN} NODE_ENV=${process.env.NODE_ENV ?? 'development'}`)
+  if (isProduction && new URL(PUBLIC_ORIGIN).protocol !== 'https:') {
+    console.warn('[web] ⚠️ 生产环境 PUBLIC_ORIGIN 应为 https://，否则 Cookie 的 Secure 标记不会生效')
   }
 })
+
+function shutdown() {
+  pool.shutdown()
+  server.close(() => process.exit(0))
+  setTimeout(() => process.exit(0), 5_000).unref?.()
+}
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)
