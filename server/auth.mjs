@@ -34,6 +34,7 @@ const users = new Map()
 const sessions = new Map()
 const failures = new Map()
 let persistTimer = null
+let lastAuthFingerprint = ''
 
 function readJson(file, fallback) {
   try {
@@ -61,6 +62,7 @@ function persistSessions() {
   } catch (error) {
     console.error('[auth] 会话落盘失败:', error)
   }
+  lastAuthFingerprint = authFingerprint()
 }
 
 /** 只用于滑动续期这类可丢失的更新；登录/登出必须同步落盘，避免重启即掉线 */
@@ -103,6 +105,29 @@ export function loadAuthStore() {
       sessions.set(session.tokenHash, { userId: session.userId, expiresAt: session.expiresAt })
     }
   }
+}
+
+/**
+ * auth-cli 是独立进程，改密码 / 禁用账号 / 加账号后不会通知网关。
+ * 每次鉴权前比对磁盘内容指纹，变化则清空并重建内存状态，保证管理操作立刻生效。
+ */
+function authFingerprint() {
+  try {
+    const usersRaw = readFileSync(USERS_FILE)
+    const sessionsRaw = existsSync(SESSIONS_FILE) ? readFileSync(SESSIONS_FILE) : Buffer.alloc(0)
+    return createHash('sha256').update(usersRaw).update(sessionsRaw).digest('hex')
+  } catch {
+    return ''
+  }
+}
+
+function syncFromDiskIfChanged() {
+  const fingerprint = authFingerprint()
+  if (!fingerprint || fingerprint === lastAuthFingerprint) return
+  users.clear()
+  sessions.clear()
+  loadAuthStore()
+  lastAuthFingerprint = fingerprint
 }
 
 export function createUser(username, password, role = 'user', quota = {}) {
@@ -172,7 +197,10 @@ export function listUsers() {
 
 export function initAuth() {
   loadAuthStore()
-  if (users.size > 0) return
+  if (users.size > 0) {
+    lastAuthFingerprint = authFingerprint()
+    return
+  }
   const username = process.env.BOOTSTRAP_ADMIN_USERNAME
   const password = process.env.BOOTSTRAP_ADMIN_PASSWORD
   if (username && password) {
@@ -186,6 +214,7 @@ export function initAuth() {
     console.log(`[auth] 开发账号  username=dev  password=${generated}`)
     console.log('[auth] 该口令只在本次启动日志中出现；生产环境请用环境变量或 auth-cli 建号')
   }
+  lastAuthFingerprint = authFingerprint()
 }
 
 function failureKey(req, username) {
@@ -193,6 +222,7 @@ function failureKey(req, username) {
 }
 
 export function login(req, username, password) {
+  syncFromDiskIfChanged()
   if (typeof username !== 'string' || typeof password !== 'string') return { error: 'INVALID_CREDENTIALS' }
   const key = failureKey(req, username)
   const state = failures.get(key)
@@ -239,6 +269,7 @@ function parseCookies(header) {
 }
 
 export function authenticate(req) {
+  syncFromDiskIfChanged()
   const token = parseCookies(req.headers?.cookie)[SESSION_COOKIE]
   if (!token || !TOKEN_PATTERN.test(token)) return null
   const tokenHash = hashToken(token)
