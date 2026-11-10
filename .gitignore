@@ -4,7 +4,12 @@ node_modules
 # 构建输出
 dist
 dist-electron
+dist-web
 release
+
+# 网页版运行时数据（含账号库、会话、配额、作品）
+data/
+runtime/
 
 # 日志
 logs
