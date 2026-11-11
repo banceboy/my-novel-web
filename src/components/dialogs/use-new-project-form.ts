@@ -10,13 +10,23 @@ export function useNewProjectForm(open: boolean, onClose: () => void) {
   const locale = useLocaleStore(s => s.locale)
   const [name, setName] = useState('')
   const [path, setPath] = useState<ProjectDirectoryGrant | null>(null)
+  const [platform, setPlatform] = useState('')
   const [creating, setCreating] = useState(false)
 
   useEffect(() => {
     if (!open) return
     let mounted = true
     Promise.resolve().then(() => {
-      if (mounted) { setName(''); setPath(null) }
+      if (!mounted) return
+      setName('')
+      setPath(null)
+      // 网页版没有可选的文件夹：保存位置固定在服务器上，自动预填一次
+      // （走 dialog:select-folder 的服务端实现，不弹任何窗口），省掉多余的「选择」。
+      if (!ipc.isElectron) {
+        void ipc.invoke('dialog:select-folder', 'project-create').then(selected => {
+          if (mounted && selected) setPath(selected)
+        })
+      }
     })
     return () => { mounted = false }
   }, [open])
@@ -42,5 +52,5 @@ export function useNewProjectForm(open: boolean, onClose: () => void) {
     if (success) onClose()
   }
 
-  return { name, setName, path, selectFolder, creating, canCreate: !creating && Boolean(name.trim()) && path !== null, create }
+  return { name, setName, path, selectFolder, platform, setPlatform, creating, canCreate: !creating && Boolean(name.trim()) && path !== null, create }
 }

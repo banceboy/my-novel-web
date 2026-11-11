@@ -2,6 +2,8 @@ import { useId } from 'react'
 import { FolderOpen } from 'lucide-react'
 import { useLayoutStore } from '../../../stores/layout-store'
 import { useLocaleStore } from '../../../stores/locale-store'
+import { PUBLISHING_PLATFORMS } from '../../../shared/publishing-platforms'
+import { ipc } from '../../../services/ipc-client'
 import { useNewProjectForm } from '../../dialogs/use-new-project-form'
 import { Button } from '../../ui/Button'
 import { InkDialog } from '../InkDialog'
@@ -50,6 +52,20 @@ export default function NewWorkDialog() {
         />
       </div>
       <div className="pi-field">
+        <label htmlFor="new-work-platform">{text('发布平台', 'Publishing platform')}</label>
+        <select
+          id="new-work-platform"
+          className="stage-select"
+          value={form.platform}
+          onChange={event => form.setPlatform(event.target.value)}
+        >
+          <option value="">{text('暂不指定', 'Not decided')}</option>
+          {PUBLISHING_PLATFORMS.map(platform => (
+            <option key={platform.id} value={platform.id}>{text(platform.zh, platform.en)}</option>
+          ))}
+        </select>
+      </div>
+      <div className="pi-field">
         <label htmlFor={folderId}>{text('保存位置', 'Location')}</label>
         <div className="stage-field-row">
           <input
@@ -57,12 +73,16 @@ export default function NewWorkDialog() {
             className="pi-input"
             value={form.path?.displayName ?? ''}
             readOnly
-            placeholder={text('选择一个文件夹，作品会建在它里面', 'Choose a folder; the book is created inside it')}
+            placeholder={ipc.isElectron
+              ? text('选择一个文件夹，作品会建在它里面', 'Choose a folder; the book is created inside it')
+              : text('保存到服务器', 'Saved on the server')}
           />
-          <Button variant="secondary" onClick={() => void form.selectFolder()}>
-            <FolderOpen size={14} aria-hidden="true" />
-            {text('选择', 'Choose')}
-          </Button>
+          {ipc.isElectron && (
+            <Button variant="secondary" onClick={() => void form.selectFolder()}>
+              <FolderOpen size={14} aria-hidden="true" />
+              {text('选择', 'Choose')}
+            </Button>
+          )}
         </div>
       </div>
       {reason && <p id={reasonId} className="stage-dialog-hint">{reason}</p>}

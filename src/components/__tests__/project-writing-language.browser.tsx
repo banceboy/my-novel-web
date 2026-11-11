@@ -78,7 +78,9 @@ function writingLanguageSelect(): HTMLSelectElement {
 
 describe('project writing language', () => {
   it('initializes a new project from the UI language at creation time', async () => {
-    vi.spyOn(ipc, 'invoke').mockResolvedValueOnce({ grantId: 'parent-grant', displayName: 'novels' } as never)
+    // 测试环境没有 Electron（网页版形态）：打开弹窗时保存位置会自动预填一次
+    // dialog:select-folder，且网页版不渲染「选择」按钮，所以 mock 需覆盖多次调用。
+    vi.spyOn(ipc, 'invoke').mockResolvedValue({ grantId: 'parent-grant', displayName: 'novels' } as never)
     const createProject = vi.fn(async () => true)
     useLocaleStore.setState({ locale: 'en-US' })
     useProjectStore.setState({ createProject: createProject as never })
@@ -87,7 +89,6 @@ describe('project writing language', () => {
     await mount(<NewWorkDialog />)
     await act(async () => {
       await page.getByPlaceholder('e.g. The Night Train').fill('English novel')
-      await page.getByRole('button', { name: 'Choose', exact: true }).click()
       await page.getByRole('button', { name: 'Create book' }).click()
     })
 

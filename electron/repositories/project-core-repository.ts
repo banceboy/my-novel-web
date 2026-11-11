@@ -20,6 +20,7 @@ export interface ProjectCoreRow {
     genre: string
     sub_genre: string
     target_audience: string
+    platform: string
     total_chapters: number
     words_per_chapter: number
     writing_language: string
@@ -49,6 +50,7 @@ export interface ProjectCoreData {
     genre: string
     subGenre: string
     targetAudience: string
+    platform: string
     totalChapters: number
     wordsPerChapter: number
     writingLanguage: WritingLanguage
@@ -98,6 +100,7 @@ function rowToData(row: ProjectCoreRow): ProjectCoreData {
         genre: row.genre,
         subGenre: row.sub_genre,
         targetAudience: row.target_audience,
+        platform: row.platform,
         totalChapters: row.total_chapters,
         wordsPerChapter: row.words_per_chapter,
         writingLanguage: resolveWritingLanguage(row.writing_language),
@@ -165,6 +168,7 @@ export class ProjectCoreRepository {
             genre: 'genre',
             subGenre: 'sub_genre',
             targetAudience: 'target_audience',
+            platform: 'platform',
             totalChapters: 'total_chapters',
             wordsPerChapter: 'words_per_chapter',
             writingLanguage: 'writing_language',

@@ -213,6 +213,28 @@ describe('书房', () => {
     expect(manuscript.querySelector<HTMLElement>('[style]')!.style.getPropertyValue('--ratio')).toBe('1')
   })
 
+  it('新建作品可选发布平台，默认「暂不指定」，列表含主流平台', async () => {
+    useLayoutStore.setState({ newProjectOpen: true })
+    host = document.createElement('div')
+    host.className = 'paper-ink stage-shell'
+    document.body.append(host)
+    root = createRoot(host)
+    await act(async () => root!.render(<NewWorkDialog />))
+    const platform = document.querySelector<HTMLSelectElement>('#new-work-platform')!
+    expect(platform, '发布平台下拉存在').toBeTruthy()
+    expect(platform.value).toBe('')
+    const labels = [...platform.options].map(option => option.textContent)
+    expect(labels[0]).toBe('暂不指定')
+    expect(labels).toContain('起点读书')
+    expect(labels).toContain('番茄小说')
+    await act(async () => {
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')!.set!
+      setter.call(platform, 'qidian')
+      platform.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+    expect(platform.value).toBe('qidian')
+  })
+
   it('新建作品没选保存位置时「创建作品」不可用，并写明原因', async () => {
     useLayoutStore.setState({ newProjectOpen: true })
     host = document.createElement('div')

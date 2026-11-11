@@ -259,6 +259,8 @@ export interface CreateProjectConfig {
   genre: string
   targetAudience: string
   writingLanguage?: WritingLanguage
+  /** 发布平台 id（见 publishing-platforms，空=暂不指定） */
+  platform?: string
 }
 
 export interface ProjectDirectoryGrant {
@@ -673,6 +675,8 @@ export interface NovelConfig {
   genre: string
   subGenre: string
   targetAudience: string
+  /** 发布平台 id（见 publishing-platforms，空/缺省=暂不指定） */
+  platform?: string
   totalChapters: number
   wordsPerChapter: number
   plotStructure: 'three_act' | 'heros_journey' | 'save_the_cat' | 'kishotenketsu' | 'multi_thread' | 'freeform'

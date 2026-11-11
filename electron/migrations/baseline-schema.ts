@@ -18,6 +18,7 @@ export function applyBaselineTables(db: BetterSqlite3.Database): void {
       genre TEXT DEFAULT '',                      -- 核心流派
       sub_genre TEXT DEFAULT '',                  -- 细分流派
       target_audience TEXT DEFAULT '',            -- 目标受众
+      platform TEXT NOT NULL DEFAULT '',          -- 发布平台 id（空=暂不指定）
       total_chapters INTEGER DEFAULT 100,         -- 预计总章数
       words_per_chapter INTEGER DEFAULT 3000,     -- 单章基准字数
       writing_language TEXT NOT NULL DEFAULT 'zh-CN', -- 项目级写作语言
@@ -965,6 +966,9 @@ export function initializeLegacyBaselineSchema(db: BetterSqlite3.Database, impor
   addProjectCoreTextColumn('world_setting', 'worldbuilding')
   addProjectCoreTextColumn('protagonist_profile')
   addProjectCoreTextColumn('plot_tree_snapshot')
+  // V18: 2026-11-11 发布平台（起点/番茄/晋江…，shared/publishing-platforms）；空串=暂不指定。
+  //      新库由建表 DEFAULT 直接带出；旧库 ADD COLUMN 自动回填空串，无需回填。
+  addProjectCoreTextColumn('platform')
   if (!projectCoreColumns.has('writing_language')) {
     db.exec("ALTER TABLE project_core ADD COLUMN writing_language TEXT NOT NULL DEFAULT 'zh-CN'")
     projectCoreColumns.add('writing_language')

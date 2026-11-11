@@ -502,6 +502,7 @@ export function registerProjectController(options: ProjectControllerOptions = {}
         ProjectCoreRepository.update({
           genre: config.genre,
           targetAudience: config.targetAudience,
+          platform: config.platform ?? '',
         })
 
         const updatedAt = new Date().toISOString()
@@ -652,6 +653,7 @@ export function registerProjectController(options: ProjectControllerOptions = {}
             genre: updatedCoreData.genre,
             subGenre: updatedCoreData.subGenre,
             targetAudience: updatedCoreData.targetAudience,
+            platform: updatedCoreData.platform,
             totalChapters: updatedCoreData.totalChapters,
             wordsPerChapter: updatedCoreData.wordsPerChapter,
             creativeStrategy: updatedCoreData.creativeStrategy,
@@ -769,6 +771,10 @@ export function registerProjectController(options: ProjectControllerOptions = {}
         if (data.novelConfig.writingLanguage !== undefined) {
           coreUpdate.writingLanguage = resolveWritingLanguage(data.novelConfig.writingLanguage)
         }
+        // 发布平台缺省=不覆盖库里已有值（undefined 不能进 better-sqlite3 绑定）
+        if (data.novelConfig.platform !== undefined) {
+          coreUpdate.platform = data.novelConfig.platform
+        }
         Object.assign(coreUpdate, {
           genre: data.novelConfig.genre,
           subGenre: data.novelConfig.subGenre,
@@ -842,6 +848,7 @@ export function registerProjectController(options: ProjectControllerOptions = {}
           genre: data.novelConfig.genre,
           subGenre: data.novelConfig.subGenre,
           targetAudience: data.novelConfig.targetAudience,
+          platform: data.novelConfig.platform ?? '',
           totalChapters: data.novelConfig.totalChapters,
           wordsPerChapter: data.novelConfig.wordsPerChapter,
           ...creativeStrategyCoreUpdate(data.novelConfig),
