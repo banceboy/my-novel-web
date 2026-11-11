@@ -33,8 +33,8 @@ describe('theme projection through the single appearance writer', () => {
   it('does not hydrate or write defaults before main readiness', async () => {
     const { theme } = await stores()
     theme.getState().initTheme()
-    theme.getState().setTheme('dark')
-    expect(theme.getState().theme).toBe('light')
+    theme.getState().setTheme('light')
+    expect(theme.getState().theme).toBe('dark')
     expect(localStorage.getItem(APPEARANCE_STORAGE_KEY)).toBeNull()
     expect(localStorage.getItem(LEGACY_THEME_STORAGE_KEY)).toBeNull()
   })

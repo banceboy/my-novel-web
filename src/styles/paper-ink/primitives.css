@@ -1,11 +1,11 @@
 /*
- * 纸墨组件原语。只引用 tokens.css 的变量，不写颜色字面量（scripts/check-color-literals.mjs 检查）。
+ * Northstar 组件原语。只引用 tokens.css 的变量，不写颜色字面量（scripts/check-color-literals.mjs 检查）。
  * 类名统一 pi- 前缀，避免与沿用旧组件的全局类冲突；选择器不依赖元素位置或本地化文字。
  *
- * 材质模型（design-system.md「按钮与浮层」）：可按的从纸面凸起，可写的凹进纸面，浮在纸上的都是同一张笺（--layer），
- * 印在纸上的是字（提示条与后果说明没有盒子）。危险按钮是平的方肩朱印。
+ * 材质模型：纯色块 + 一条极细边框，浮层是统一的 --layer 面板；按钮、输入、弹层的受光与投影
+ * 由 tokens.css 压成透明，读起来是扁平界面而非压印纸片。数字与标题一律无衬线。
  */
-.pi-num { font-family: var(--font-num); font-style: italic; font-variant-numeric: oldstyle-nums; }
+.pi-num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
 .pi-display { font-family: var(--font-display); font-weight: 600; }
 
 /* 按钮与菜单项自己合成焦点环，不在这里 */
@@ -33,7 +33,7 @@
   height: 36px; padding: 0 var(--s-4);
   border: 1px solid transparent; border-radius: var(--pi-radius);
   background: transparent; color: var(--ink);
-  font: 500 var(--fs-13)/1 var(--font-ui); letter-spacing: .05em; white-space: nowrap; font-variant-numeric: tabular-nums;
+  font: 500 var(--fs-13)/1 var(--font-ui); letter-spacing: 0; white-space: nowrap; font-variant-numeric: tabular-nums;
   cursor: pointer; user-select: none; outline: none;
   box-shadow: var(--pi-ring), var(--pi-shadow);
   transition: background-color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease),
@@ -296,7 +296,7 @@
   border-radius: var(--radius-lg); overflow: hidden; background: var(--rule); box-shadow: 0 0 0 1px var(--rule); }
 .pi-stat { display: flex; flex-direction: column; gap: 2px; padding: var(--s-3) var(--s-4); background: var(--paper); }
 .pi-stat-label { font-size: var(--fs-12); color: var(--ink-3); }
-.pi-stat-value { order: -1; margin: 0; font: italic 400 var(--fs-30)/1.1 var(--font-num); color: var(--ink); }
+.pi-stat-value { order: -1; margin: 0; font: 600 var(--fs-30)/1.1 var(--font-num); font-variant-numeric: tabular-nums; color: var(--ink); }
 .pi-stat-hint { margin: 0; font-size: var(--fs-11); color: var(--ink-3); }
 
 /* ================= 提示条与就地确认：朱批 ================= */

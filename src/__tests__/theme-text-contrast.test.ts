@@ -69,7 +69,7 @@ describe('readable theme text contrast contract', () => {
   ] as const)('keeps %s information-bearing muted text at WCAG AA on content surfaces', (_theme, selector) => {
     const declarations = declarationsFor(selector)
     const mutedText = declarations.get('--color-text-muted')
-    expect(mutedText).toBe('#655F55')
+    expect(mutedText).toBe('#5F5F5F')
 
     for (const surfaceToken of contentSurfaces) {
       const surface = declarations.get(surfaceToken)
@@ -82,8 +82,8 @@ describe('readable theme text contrast contract', () => {
   })
 
   it.each([
-    ['light', ':root', '#386042', '#8F3020', '#FFFFFF'],
-    ['dark', '.dark', '#89D185', '#FF8A8A', '#181818'],
+    ['light', ':root', '#0B625B', '#B42318', '#FFFFFF'],
+    ['dark', '.dark', '#6EE7B7', '#FF8F85', '#08090A'],
   ] as const)('keeps %s success and error status copy readable on interactive agent headers', (_theme, selector, expectedSuccess, expectedError, expectedSuccessForeground) => {
     const declarations = declarationsFor(selector)
     const successText = declarations.get('--color-success-text')
@@ -123,8 +123,8 @@ describe('readable theme text contrast contract', () => {
   })
 
   it.each([
-    ['light', ':root', '#7A5414', '#C68A3A'],
-    ['dark', '.dark', '#CCA700', '#CCA700'],
+    ['light', ':root', '#B54708', '#B54708'],
+    ['dark', '.dark', '#FDB022', '#FDB022'],
   ] as const)('keeps %s warning copy readable without changing the decorative warning color', (_theme, selector, expectedText, expectedDecoration) => {
     const declarations = declarationsFor(selector)
     const warningText = declarations.get('--color-warning-text')

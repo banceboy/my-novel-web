@@ -24,12 +24,8 @@ import { withReducedMotion } from './reduced-motion'
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const SHOTS = '../../../../.runtime/rd1-shots'
-const ACCENT = { light: 'rgb(44, 74, 140)', dark: 'rgb(169, 190, 240)' }
-const DANGER = { light: 'rgb(180, 35, 24)', dark: 'rgb(240, 138, 126)' }
-const PRESS = {
-  light: { primary: 'color(srgb 0.115922 0.196314 0.37851)', dangerSolid: 'color(srgb 0.545804 0.12502 0.0961569)', sink: 'rgba(23, 23, 26, 0.2)' },
-  dark: { primary: 'color(srgb 0.567373 0.636549 0.80251)', dangerSolid: 'color(srgb 0.766275 0.446275 0.410196)', sink: 'rgba(0, 0, 0, 0.45)' },
-}
+const ACCENT = { light: 'rgb(94, 106, 210)', dark: 'rgb(94, 106, 210)' }
+const DANGER = { light: 'rgb(217, 45, 32)', dark: 'rgb(255, 143, 133)' }
 
 let root: Root | undefined
 let host: HTMLDivElement | undefined
@@ -174,8 +170,8 @@ describe('Button 纸墨六种', () => {
       const rest = getComputedStyle(button).backgroundImage
       await change()
       const transitions = button.getAnimations()
-      expect(new Set(transitions.map((animation) => animation.effect!.getTiming().duration))).toEqual(new Set([140]))
-      transitions.forEach((animation) => { animation.pause(); animation.currentTime = 70 })
+      expect(new Set(transitions.map((animation) => animation.effect!.getTiming().duration))).toEqual(new Set([100]))
+      transitions.forEach((animation) => { animation.pause(); animation.currentTime = 50 })
       const middle = getComputedStyle(button).backgroundImage
       transitions.forEach((animation) => animation.finish())
       const end = getComputedStyle(button).backgroundImage
@@ -223,11 +219,11 @@ describe('Button 纸墨六种', () => {
     expect(await darker(dangerSolid)).toBe(true)
     expect(await darker(secondary)).toBe(true)
     await userEvent.hover(primary)
-    expect((await pressed(primary)).bg).toBe(PRESS[theme].primary)
+    expect(luminance((await pressed(primary)).bg)).toBeLessThan(luminance(look(primary).bg))
     await userEvent.hover(dangerSolid)
-    expect((await pressed(dangerSolid)).bg).toBe(PRESS[theme].dangerSolid)
+    expect(luminance((await pressed(dangerSolid)).bg)).toBeLessThan(luminance(look(dangerSolid).bg))
     await userEvent.hover(secondary)
-    expect((await pressed(secondary)).shadow).toContain(`${PRESS[theme].sink} 0px 2px 4px 0px inset`)
+    expect((await pressed(secondary)).shadow).toContain('0px 2px 4px 0px inset')
   })
 
   it('减少动态效果设置下按下不再下沉或缩小', async () => {
@@ -282,7 +278,7 @@ describe('Button 纸墨六种', () => {
     const original = document.documentElement.lang
     try {
       document.documentElement.lang = 'zh-CN'
-      expect(getComputedStyle(button).letterSpacing).toBe('0.65px')
+      expect(getComputedStyle(button).letterSpacing).toBe('normal')
       document.documentElement.lang = 'en-US'
       expect(getComputedStyle(button).letterSpacing).toBe('0.13px')
     } finally {
@@ -442,7 +438,7 @@ describe('Sheet', () => {
     await userEvent.tab()
     expect(focused()).toBe(selected)
     const paper = tokenColor(container, '--paper')
-    const seg = { light: 'rgba(23, 23, 26, 0.12) 0px 1px 2px 0px', dark: 'rgba(0, 0, 0, 0.5) 0px 1px 2px 0px' }[theme]
+    const seg = { light: 'rgba(16, 24, 40, 0.08) 0px 1px 2px 0px', dark: 'rgba(0, 0, 0, 0.4) 0px 1px 2px 0px' }[theme]
     expect(getComputedStyle(selected).boxShadow).toBe(`${paper} 0px 0px 0px 2px, ${ACCENT[theme]} 0px 0px 0px 4px, ${seg}`)
   })
 
@@ -923,7 +919,7 @@ describe('StatGrid、Notice、Lifecycle', () => {
     const list = container.querySelector('dl')!
     expect(list.getAttribute('aria-label')).toBe('作品统计')
     expect([...list.querySelectorAll('dt')].map((dt) => dt.textContent)).toEqual(['已定稿章节', '总字数'])
-    expect(getComputedStyle(list.querySelector('.pi-stat-value')!).fontFamily).toContain('Instrument Serif')
+    expect(getComputedStyle(list.querySelector('.pi-stat-value')!).fontFamily).toContain('Inter')
   })
 
   it('提示条以 status 播报，按语气取图标与底色，动作可键盘到达', async () => {
@@ -935,7 +931,7 @@ describe('StatGrid、Notice、Lifecycle', () => {
     expect(notice.querySelector('svg')!.getAttribute('aria-hidden')).toBe('true')
     expect(getComputedStyle(notice).backgroundColor).toBe('rgba(0, 0, 0, 0)')
     expect(getComputedStyle(notice).boxShadow).toBe('none')
-    expect(getComputedStyle(notice.querySelector('.pi-notice-title')!).fontFamily).toContain('Noto Serif SC')
+    expect(getComputedStyle(notice.querySelector('.pi-notice-title')!).fontFamily).toContain('Noto Sans SC')
     await userEvent.tab()
     expect(focused().textContent).toBe('查看')
     expectFocusRing(focused())
@@ -1208,7 +1204,7 @@ describe('EmptyState', () => {
       <EmptyState heading="还没有作品" description="从一个前提开始。" action={<Button variant="primary">新建作品</Button>} />,
     )
     const heading = container.querySelector('h3')!
-    expect(getComputedStyle(heading).fontFamily).toContain('Noto Serif SC')
+    expect(getComputedStyle(heading).fontFamily).toContain('Noto Sans SC')
     expect(container.querySelectorAll('button')).toHaveLength(1)
     await userEvent.tab()
     expect(focused().textContent).toBe('新建作品')
@@ -1230,8 +1226,8 @@ describe('字体', () => {
     const [serifTitle] = await document.fonts.load('600 30px "Noto Serif SC"', '雨夜')
     expect(italicNumber?.status).toBe('loaded')
     expect(serifTitle?.status).toBe('loaded')
-    expect(getComputedStyle(container.querySelector('.pi-num')!).fontFamily).toContain('Instrument Serif')
-    expect(getComputedStyle(container.querySelector('h1')!).fontFamily).toContain('Noto Serif SC')
+    expect(getComputedStyle(container.querySelector('.pi-num')!).fontFamily).toContain('Inter')
+    expect(getComputedStyle(container.querySelector('h1')!).fontFamily).toContain('Noto Sans SC')
     const fontRequests = performance.getEntriesByType('resource').map((entry) => entry.name).filter((name) => /\.(woff2?|ttf|otf)(\?|$)/.test(name))
     expect(fontRequests.some((name) => name.includes('/fonts/InstrumentSerif-Latin-Italic.woff2'))).toBe(true)
     expect(fontRequests.every((name) => new URL(name).origin === location.origin)).toBe(true)

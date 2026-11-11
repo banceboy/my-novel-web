@@ -842,7 +842,7 @@ export const STAGE_SCENARIOS = {
   'stage-settings-about': { model: false, shell: 'stage', setup: seedStageSample, run: async ({ page }) => {
     await stage.openSettings(page)
     await stage.showSettingsPage(page, '关于与更新')
-    await stage.root(page).getByText('书童 Pagekin', { exact: true }).waitFor({ state: 'visible' })
+    await stage.root(page).getByText('小书童 Pagekin', { exact: true }).waitFor({ state: 'visible' })
     await stage.root(page).getByText('原名「AI小说作家」', { exact: true }).waitFor({ state: 'visible' })
     const marks = await page.evaluate(() => ['.stage-brand', '.stage-set-about-mark'].map(selector => {
       const mark = document.querySelector(selector)
@@ -854,7 +854,7 @@ export const STAGE_SCENARIOS = {
   'stage-settings-dark': { model: false, shell: 'stage', setup: seedStageSample, run: async context => {
     await stage.openSettings(context.page)
     await stage.showSettingsPage(context.page, '外观')
-    await context.page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^深色/ }).click()
+    await context.page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^黑夜/ }).click()
     await stage.root(context.page).and(context.page.locator('[data-theme="dark"]')).waitFor({ state: 'visible' })
     await context.restart()
     const { page } = context
@@ -863,7 +863,7 @@ export const STAGE_SCENARIOS = {
     await stage.openFromLibrary(page, STAGE_SAMPLE.name)
     await stage.openSettings(page)
     await stage.showSettingsPage(page, '外观')
-    assert.equal(await page.getByRole('radio', { name: /^深色/ }).getAttribute('aria-checked'), 'true')
+    assert.equal(await page.getByRole('radio', { name: /^黑夜/ }).getAttribute('aria-checked'), 'true')
     assert.deepEqual(await chromeContrastFailures(page), [], '深色设置页文字对比度不足')
   } },
   'stage-settings-model': { model: false, shell: 'stage', setup: seedStageSample, run: async ({ page }) => {
@@ -1266,9 +1266,9 @@ export const STAGE_SCENARIOS = {
     await pause(1800)
     await stage.showSettingsPage(page, '外观')
     await pause(1200)
-    await page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^深色/ }).click()
+    await page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^黑夜/ }).click()
     await pause(2000)
-    await page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^浅色/ }).click()
+    await page.getByRole('radiogroup', { name: '主题' }).getByRole('radio', { name: /^白天/ }).click()
     await pause(1200)
     await stage.showSettingsPage(page, '关于与更新')
     await pause(1500)

@@ -24,7 +24,7 @@ export interface CanonicalAppearanceProfile {
 }
 
 export const INITIAL_APPEARANCE: Readonly<CanonicalAppearanceProfile> = Object.freeze({
-  revision: 1, colorTheme: 'light', zoom: 1, writingFont: 'lxgw-wenkai', uiFont: 'noto-sans-sc', origin: 'legacy-import', legacyImportCompleted: true,
+  revision: 1, colorTheme: 'dark', zoom: 1, writingFont: 'noto-sans-sc', uiFont: 'inter', origin: 'legacy-import', legacyImportCompleted: true,
 })
 
 const FONTS = ['inter', 'noto-sans-sc', 'lxgw-wenkai', 'noto-serif-sc', 'system']

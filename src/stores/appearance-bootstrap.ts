@@ -35,7 +35,18 @@ export interface AppearanceBootstrapState {
  */
 function readOrMigrate(storage: Pick<Storage, 'getItem'>, systemTheme: () => ColorTheme): { profile: CanonicalAppearanceProfile; stored: string | null } {
   const stored = storage.getItem(APPEARANCE_STORAGE_KEY)
-  if (stored !== null) return { profile: parseAppearanceProfile(stored), stored }
+  if (stored !== null) {
+    const profile = parseAppearanceProfile(stored)
+    /*
+     * 从上游旧版本迁来的配置（origin 仍是 legacy-import）不是用户在本产品里主动选的主题，
+     * 它记的是旧版宣纸浅色。换版后主题跟随新默认，缩放与字体原样保留。
+     * 返回 stored=null 让调用方把新值写回；用户一旦主动改过任何偏好，origin 变 author，不再覆盖。
+     */
+    if (profile.origin === 'legacy-import' && profile.colorTheme !== INITIAL_APPEARANCE.colorTheme) {
+      return { profile: { ...profile, colorTheme: INITIAL_APPEARANCE.colorTheme }, stored: null }
+    }
+    return { profile, stored }
+  }
   const previous = storage.getItem(PREVIOUS_APPEARANCE_STORAGE_KEY)
   if (previous !== null) return { profile: migratePreviousAppearance(previous), stored: null }
   return { profile: migrateLegacyAppearance(storage.getItem(LEGACY_THEME_STORAGE_KEY), systemTheme()), stored: null }

@@ -251,7 +251,7 @@ describe('流程脊', () => {
     await userEvent.tab()
     const current = stageRows(container)[2]
     expect(document.activeElement).toBe(current)
-    expect(getComputedStyle(current).boxShadow).toMatch(/^rgb\(255, 254, 251\) 0px 0px 0px 2px, rgb\(44, 74, 140\) 0px 0px 0px 4px, /)
+    expect(getComputedStyle(current).boxShadow).toMatch(/^rgb\(255, 255, 255\) 0px 0px 0px 2px, rgb\(94, 106, 210\) 0px 0px 0px 4px, /)
   })
 
   it('章节列表晚于当前章渲染时，当前章也滚进列表可视区', async () => {

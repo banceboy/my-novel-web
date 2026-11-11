@@ -120,7 +120,7 @@ describe('appearance bootstrap in real browser storage', () => {
       revision += 5
     }
     expect(store.getState().resetAppearance()).toBe(true)
-    expect(JSON.parse(localStorage.getItem(KEY)!)).toMatchObject({ schemaVersion: 3, colorTheme: 'light', revision: revision + 1, origin: 'author' })
+    expect(JSON.parse(localStorage.getItem(KEY)!)).toMatchObject({ schemaVersion: 3, colorTheme: 'dark', revision: revision + 1, origin: 'author' })
     expect(localStorage.getItem(PREVIOUS)).toBe(previous)
     expect(await store.getState().bootstrap(dependencies())).toBe(true)
     expect(store.getState()).toMatchObject({ phase: 'migrated' })
@@ -146,7 +146,7 @@ describe('appearance bootstrap in real browser storage', () => {
     expect(await reloaded.getState().bootstrap(main)).toBe(false)
     expect(reloaded.getState().resetAppearance()).toBe(true)
     expect(await reloaded.getState().bootstrap(main)).toBe(true)
-    expect(reloaded.getState()).toMatchObject({ phase: 'migrated', profile: { colorTheme: 'light', revision: 10 } })
+    expect(reloaded.getState()).toMatchObject({ phase: 'migrated', profile: { colorTheme: 'dark', revision: 10 } })
   })
 
   it.each(['legacy-json', 'previous-json', 'previous-stage-in-v1', 'canonical-json', 'canonical-shell'] as const)('preserves %s and blocks without writing defaults', async kind => {

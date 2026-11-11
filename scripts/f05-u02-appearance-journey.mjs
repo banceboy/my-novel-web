@@ -147,11 +147,11 @@ async function main() {
 
     currentStep = 'U02.A03'
     await openAppearance(page)
-    await themeRadio(page, '深色').click()
+    await themeRadio(page, '黑夜').click()
     await page.waitForFunction(() => document.querySelector('[data-shell-presentation="stage"]')?.getAttribute('data-theme') === 'dark'
       && document.documentElement.classList.contains('dark'))
-    assert.equal(await themeRadio(page, '深色').getAttribute('aria-checked'), 'true')
-    assert.equal(await themeRadio(page, '浅色').getAttribute('aria-checked'), 'false')
+    assert.equal(await themeRadio(page, '黑夜').getAttribute('aria-checked'), 'true')
+    assert.equal(await themeRadio(page, '白天').getAttribute('aria-checked'), 'false')
     assert.equal((await stored(page)).colorTheme, 'dark')
     pass('stage-select-color-theme', 'U02.A03', 'The 外观 theme radio applies dark to the paper-ink root, the document and the canonical profile')
 
@@ -192,7 +192,7 @@ async function main() {
     assert.match(await cssVariable(page, '--font-sans'), /Inter/)
     assert.match(await cssVariable(page, '--font-writing'), /Noto Serif SC/)
     await openAppearance(page)
-    assert.equal(await themeRadio(page, '深色').getAttribute('aria-checked'), 'true')
+    assert.equal(await themeRadio(page, '黑夜').getAttribute('aria-checked'), 'true')
     assert.equal(await fontSelect(page, '界面字体').inputValue(), 'inter')
     assert.equal(await fontSelect(page, '写作字体').inputValue(), 'noto-serif-sc')
     await zoomGroup(page).getByText('105%', { exact: true }).waitFor()

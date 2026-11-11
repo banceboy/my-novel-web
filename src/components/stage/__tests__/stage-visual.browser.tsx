@@ -121,7 +121,7 @@ describe('新外壳的外观细节', () => {
     expect(document.activeElement).toBe(label)
     expect([getComputedStyle(label).boxShadow, getComputedStyle(label).outlineStyle]).toEqual(['none', 'none'])
     const ring = getComputedStyle(whole, '::after')
-    expect([ring.borderTopColor, ring.borderTopWidth, ring.borderBottomWidth]).toEqual(['rgb(44, 74, 140)', '2px', '2px'])
+    expect([ring.borderTopColor, ring.borderTopWidth, ring.borderBottomWidth]).toEqual(['rgb(94, 106, 210)', '2px', '2px'])
     const box = whole.getBoundingClientRect()
     const inset = [ring.top, ring.right, ring.bottom, ring.left].map(parseFloat)
     const close = whole.querySelector('.stage-tab-close')!.getBoundingClientRect()
@@ -206,7 +206,7 @@ describe('新外壳的外观细节', () => {
     await userEvent.hover(start)
     await userEvent.tab()
     expect(document.activeElement).toBe(start)
-    expect(getComputedStyle(start).boxShadow).toContain('rgb(44, 74, 140) 0px 0px 0px 4px')
+    expect(getComputedStyle(start).boxShadow).toContain('rgb(94, 106, 210) 0px 0px 0px 4px')
   })
 
   it('减少动态效果时书封悬停仍有反馈：不抬起，但投影变了', async () => {
@@ -238,7 +238,7 @@ describe('新外壳的外观细节', () => {
     await userEvent.tab()
     const item = container.querySelector<HTMLElement>('.pi-menu-item')!
     expect(document.activeElement).toBe(item)
-    expect(getComputedStyle(item).boxShadow).toBe('rgb(44, 74, 140) 0px 0px 0px 2px inset')
+    expect(getComputedStyle(item).boxShadow).toBe('rgb(94, 106, 210) 0px 0px 0px 2px inset')
   })
 
   it('拆分主按钮的下拉箭头居中，不吃图标加文字时的 2px 左移', async () => {

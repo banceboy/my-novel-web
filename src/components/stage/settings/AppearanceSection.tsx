@@ -31,8 +31,8 @@ function ThemeChoice() {
   const setTheme = useThemeStore(s => s.setTheme)
   const radios = useRef<(HTMLButtonElement | null)[]>([])
   const themes = [
-    { id: 'light', icon: <Sun size={18} aria-hidden="true" />, name: text('浅色', 'Light'), desc: text('纸面与墨色', 'Paper and ink') },
-    { id: 'dark', icon: <Moon size={18} aria-hidden="true" />, name: text('深色', 'Dark'), desc: text('夜里写作', 'For the night') },
+    { id: 'light', icon: <Sun size={18} aria-hidden="true" />, name: text('白天', 'Day'), desc: text('白色背景', 'White background') },
+    { id: 'dark', icon: <Moon size={18} aria-hidden="true" />, name: text('黑夜', 'Night'), desc: text('黑色背景', 'Black background') },
   ] as const
   const selected = themes.findIndex(option => option.id === theme)
 
@@ -82,7 +82,7 @@ export default function AppearanceSection() {
   const writingFontFamily = FONT_OPTIONS.find(option => option.id === writingFont)?.family
   return (
     <div className="stage-set-rows">
-      <Row title={text('主题', 'Theme')} control={<ThemeChoice />} />
+      <Row title={text('白天 / 黑夜', 'Day / night')} control={<ThemeChoice />} />
       <Row htmlFor={languageId} title={text('界面语言', 'Interface language')}
         desc={text('菜单、按钮与提示的语言。AI 写作用的语言在作品设定里单独设置。', 'Menus, buttons and messages. The language AI writes in is set per book, in setup.')}
         control={(

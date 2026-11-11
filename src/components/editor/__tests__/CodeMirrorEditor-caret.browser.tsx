@@ -38,9 +38,9 @@ describe('CodeMirror writing caret', () => {
     const caret = container.querySelector<HTMLElement>('.cm-cursor')
     expect(caret).toBeTruthy()
     expect(getComputedStyle(editableSurface!).cursor).toBe('text')
-    expect(getComputedStyle(caret!).borderLeftColor).toBe('rgb(255, 255, 255)')
+    expect(getComputedStyle(caret!).borderLeftColor).toBe('rgb(94, 106, 210)')
 
     container.className = ''
-    expect(getComputedStyle(caret!).borderLeftColor).toBe('rgb(122, 31, 18)')
+    expect(getComputedStyle(caret!).borderLeftColor).toBe('rgb(94, 106, 210)')
   })
 })

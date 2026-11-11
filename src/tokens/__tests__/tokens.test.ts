@@ -7,18 +7,18 @@ const cssPath = resolve(process.cwd(), 'src/index.css')
 const css = readFileSync(cssPath, 'utf8')
 const root = postcss.parse(css, { from: cssPath })
 
-const approvedPaperPalette = {
-  '--color-bg': '#F7F3E8',
-  '--color-sidebar': '#F0EADA',
-  '--color-panel': '#F0EADA',
-  '--color-hover': '#EAE3D2',
-  '--color-active': '#E3DCC9',
-  '--color-text': '#2B2A26',
-  '--color-text-secondary': '#6E6A5F',
-  '--color-text-muted': '#655F55',
-  '--color-border': '#E3DCC9',
-  '--color-accent': '#B5402C',
-  '--color-editor-bg': '#FCFAF3',
+const approvedPalette = {
+  '--color-bg': '#F9F9F8',
+  '--color-sidebar': '#F1F1F0',
+  '--color-panel': '#F1F1F0',
+  '--color-hover': '#E9E9E7',
+  '--color-active': '#E0E0DE',
+  '--color-text': '#1A1A1A',
+  '--color-text-secondary': '#454545',
+  '--color-text-muted': '#5F5F5F',
+  '--color-border': '#E4E4E2',
+  '--color-accent': '#5E6AD2',
+  '--color-editor-bg': '#FFFFFF',
 }
 
 function declarationsFor(selector: string) {
@@ -44,7 +44,7 @@ describe('runtime CSS token authority', () => {
 
       const declarations = Object.fromEntries(
         rule.nodes
-          .filter((node): node is Declaration => node.type === 'decl' && node.prop in approvedPaperPalette)
+          .filter((node): node is Declaration => node.type === 'decl' && node.prop in approvedPalette)
           .map(declaration => [declaration.prop, declaration.value]),
       )
       if (Object.keys(declarations).length > 0) paperPaletteRules.push({ selectors: rule.selectors, declarations })
@@ -53,25 +53,25 @@ describe('runtime CSS token authority', () => {
     expect(paperPaletteRules).toEqual([
       {
         selectors: [':root'],
-        declarations: approvedPaperPalette,
+        declarations: approvedPalette,
       },
     ])
   })
 
   it.each([
-    [':root', approvedPaperPalette],
+    [':root', approvedPalette],
     ['.dark', {
-      '--color-bg': '#1E1E1E',
-      '--color-sidebar': '#252526',
-      '--color-panel': '#252526',
-      '--color-hover': '#2A2D2E',
-      '--color-active': '#37373D',
-      '--color-text': '#D4D4D4',
-      '--color-text-secondary': '#A0A0A0',
-      '--color-text-muted': '#888888',
-      '--color-border': '#3C3C3C',
-      '--color-accent': '#0E639C',
-      '--color-editor-bg': '#1E1E1E',
+      '--color-bg': '#08090A',
+      '--color-sidebar': '#0F1011',
+      '--color-panel': '#0F1011',
+      '--color-hover': '#17181A',
+      '--color-active': '#1C1D1F',
+      '--color-text': '#F7F8F8',
+      '--color-text-secondary': '#C7CBD1',
+      '--color-text-muted': '#8A8F98',
+      '--color-border': '#26272A',
+      '--color-accent': '#5E6AD2',
+      '--color-editor-bg': '#0F1011',
     }],
   ])('locks the approved %s runtime palette', (selector, expected) => {
     expect(declarationsFor(selector)).toMatchObject(expected)
@@ -108,10 +108,10 @@ describe('relationship role semantics', () => {
     expect(roleRules).toEqual([{
       selectors: [':root'],
       declarations: {
-        '--color-role-protagonist': '#B5402C',
-        '--color-role-antagonist': '#54666E',
-        '--color-role-supporting': '#527A5B',
-        '--color-role-minor': '#A39D8D',
+        '--color-role-protagonist': '#5E6AD2',
+        '--color-role-antagonist': '#D92D20',
+        '--color-role-supporting': '#0F766E',
+        '--color-role-minor': '#64748B',
       },
     }])
   })

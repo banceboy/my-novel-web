@@ -276,7 +276,7 @@ export const ipc = {
     ...args: AllInvokeChannels[C]['args']
   ): Promise<AllInvokeChannels[C]['return']> => {
     if (!isProjectScopedChannel(channel)) {
-      throw new Error(`通道不属于项目会话范围：${channel}`)
+      throw new Error(`Channel is not project-scoped: ${channel}`)
     }
     return invokeWithSession(channel, args, context)
   },

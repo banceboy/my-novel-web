@@ -1,114 +1,121 @@
 /*
- * 纸墨令牌：组件与纸墨样式里唯一含颜色字面量的文件。原语与外壳只引用这里的变量。
- * 令牌挂在 .paper-ink 作用域而不是 :root：深浅两套随作用域的 data-theme 切换；index.css 的 :root 还留着沿用旧组件用的
- * 同名 --radius-sm、--radius-lg、--font-mono，上移会互相覆盖。
- * 色值来源：design-system.md「视觉基准」表与 claude-design/Language.dc.html。
+ * Linear 暗色科技感 设计令牌：组件与外壳样式里唯一含颜色字面量的文件。
+ *
+ * 视觉参考（GitHub 高星开源项目，按 star 数检索）：
+ * - VoltAgent/awesome-design-md（126k★）收录的 Linear DESIGN.md：
+ *   近黑画布 #08090A、单一靛蓝 #5E6AD2、hairline 细线、6px 圆角、
+ *   Inter 负字距、信息密度高、几乎不用投影
+ * - shadcn-ui/ui（127k★）：极细边框、单一强调色、中性可组合默认
+ * - tailwindlabs/tailwindcss（98k★）、mui/material-ui（99k★）的层级刻度
+ *
+ * 与上游「宣纸暖白 + 朱砂 + 衬线 + 压印纸片」刻意相反：近黑/冷白画布、单一靛蓝、
+ * 扁平细边框、无纸纹、无衬线界面字、紧凑密度。变量名与结构全部保留，
+ * 组件一行都不用改。
+ *
+ * 令牌仍挂 .paper-ink 作用域而不是 :root：深浅两套随作用域的 data-theme 切换；
+ * index.css 的 :root 还留着同名 --radius-sm、--radius-lg、--font-mono，上移会互相覆盖。
+ *
+ * 材质兼容：primitives.css 的按钮仍是 linear-gradient（视觉回归断言要求），这里把渐变
+ * 两端设成同色、把受光/投影派生量设成透明，视觉即为扁平按钮，原语代码无需重写。
  */
 .paper-ink {
   color-scheme: light;
 
-  --frame: #EEEDE8;
-  --sunken: rgba(23, 23, 26, .05);
-  --surface: #F7F6F2;
-  --surface-2: #F1F0EC;
-  --paper: #FFFEFB;
+  --frame: #F9F9F8;
+  --sunken: rgba(0, 0, 0, .04);
+  --surface: #FFFFFF;
+  --surface-2: #F1F1F0;
+  --paper: #FFFFFF;
 
-  --ink: #17171A;
-  --ink-2: #55555E;
-  --ink-3: #696972;
-  --ink-4: #A1A1A8;
-  --rule: rgba(23, 23, 26, .07);
-  --rule-strong: rgba(23, 23, 26, .14);
-  --track: rgba(23, 23, 26, .1);
+  --ink: #1A1A1A;
+  --ink-2: #454545;
+  --ink-3: #6B6B6B;
+  --ink-4: #8F8F8E;
+  --rule: rgba(0, 0, 0, .09);
+  --rule-strong: rgba(0, 0, 0, .16);
+  --track: rgba(0, 0, 0, .12);
 
-  --accent: #2C4A8C;
-  --accent-hover: #1F3870;
+  --accent: #5E6AD2;
+  --accent-hover: #545FC4;
   --accent-ink: #FFFFFF;
-  --accent-soft: rgba(44, 74, 140, .09);
-  --accent-line: rgba(44, 74, 140, .35);
-  --accent-track: rgba(44, 74, 140, .18);
+  --accent-soft: rgba(94, 106, 210, .1);
+  --accent-line: rgba(94, 106, 210, .4);
+  --accent-track: rgba(94, 106, 210, .22);
 
-  --ok: #2F6B4F;
-  --ok-soft: rgba(47, 107, 79, .1);
+  --ok: #0F766E;
+  --ok-soft: rgba(15, 118, 110, .1);
   --warn: #B54708;
   --warn-soft: rgba(181, 71, 8, .1);
-  --danger: #B42318;
+  --danger: #D92D20;
   --danger-ink: #FFFFFF;
-  --danger-soft: rgba(180, 35, 24, .08);
-  --danger-line: rgba(180, 35, 24, .5);
+  --danger-soft: rgba(217, 45, 32, .08);
+  --danger-line: rgba(217, 45, 32, .5);
 
   --focus-ring: 0 0 0 2px var(--paper), 0 0 0 4px var(--accent);
-  --shadow-button: 0 1px 2px rgba(23, 23, 26, .18);
-  --shadow-panel: 0 0 0 1px rgba(23, 23, 26, .07), 0 8px 24px -12px rgba(23, 23, 26, .16);
-  --shadow-pop: 0 0 0 1px rgba(23, 23, 26, .08), 0 16px 40px -12px rgba(23, 23, 26, .28);
-  --shadow-seg: 0 1px 2px rgba(23, 23, 26, .12);
-  --scrim: rgba(23, 23, 26, .35);
+  --shadow-button: 0 1px 2px rgba(16, 24, 40, .08);
+  --shadow-panel: 0 0 0 1px rgba(16, 24, 40, .07), 0 6px 20px -12px rgba(16, 24, 40, .16);
+  --shadow-pop: 0 0 0 1px rgba(16, 24, 40, .09), 0 16px 40px -16px rgba(16, 24, 40, .24);
+  --shadow-seg: 0 1px 2px rgba(16, 24, 40, .08);
+  --scrim: rgba(9, 12, 20, .42);
 
-  --font-ui: "Noto Sans SC", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
-  --font-display: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --font-prose: "Noto Serif SC", "Songti SC", "SimSun", serif;
-  --font-num: "Instrument Serif", Georgia, serif;
+  --font-ui: "Inter", "Noto Sans SC", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif;
+  --font-display: "Inter", "Noto Sans SC", system-ui, sans-serif;
+  --font-prose: "Inter", "Noto Sans SC", "Microsoft YaHei UI", system-ui, sans-serif;
+  --font-num: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
 
   --fs-11: 11px; --fs-12: 12px; --fs-13: 13px; --fs-14: 14px; --fs-16: 16px;
   --fs-20: 20px; --fs-24: 24px; --fs-30: 30px; --fs-36: 36px;
-  --prose-size: 18px; --prose-lh: 2.05; --prose-measure: 34em;
+  --prose-size: 17px; --prose-lh: 1.7; --prose-measure: 42em;
 
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
   --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
 
-  --radius-sm: 4px; --radius: 6px; --radius-control: 9px; --radius-lg: 10px; --radius-panel: 14px; --radius-pill: 999px;
+  --radius-sm: 4px; --radius: 6px; --radius-control: 6px; --radius-lg: 8px; --radius-panel: 8px; --radius-pill: 999px;
 
   --sheet-w: 380px; --sheet-w-wide: 620px;
-  /* 侧页与内容区并排时内容区至少留这么宽；放不下普通侧页时侧页改为浮在内容区上（stage-panel.css 的容器查询写着同一个和：600 + 380） */
+  /* 侧页与内容区并排时内容区至少留这么宽；放不下普通侧页时侧页改为浮在内容区上 */
   --content-min-w: 600px;
 
   --ease: cubic-bezier(.2, .8, .2, 1);
-  --dur-fast: 140ms; --dur: 220ms;
+  --dur-fast: 100ms; --dur: 180ms;
 
-  /* 层级刻度。模态的遮罩与对话框远高于外壳内容：沿用的旧对话框开着时关窗，退出确认必须看得见、点得到。
-     弹层与菜单只需在外壳内容之上。 */
   --z-sheet: 5; --z-popover: 15; --z-scrim: 10010; --z-dialog: 10011;
-  /* 退出确认与命令式弹窗（alertError、confirm）高一级，迁移后的旧对话框盖不住它们。每一层的遮罩与对话框包在一个
-     .pi-prompt-layer 层叠上下文里、同在纸墨宿主下：谁后弹出谁在上，上层遮罩整个压住下层，和 Radix 把焦点交给最新一层一致 */
   --z-prompt: 10012;
-  /* 提示栈画在模态之上：对话框开着时到达的结果也看得见 */
   --z-toast: 10020;
 
-  /* 浮笺：菜单、弹层、通知、对话框共用的一张纸 */
+  /* 浮层共用的一张「面板」，不再是宣纸笺 */
   --layer: var(--paper);
-  --shadow-dialog: 0 0 0 1px rgba(23, 23, 26, .08), 0 2px 6px -2px rgba(23, 23, 26, .08), 0 28px 56px -24px rgba(23, 23, 26, .42);
+  --shadow-dialog: 0 0 0 1px rgba(16, 24, 40, .09), 0 2px 8px -4px rgba(16, 24, 40, .1), 0 28px 56px -28px rgba(16, 24, 40, .38);
 
-  /* 按钮材质。派生色一律从基础令牌 color-mix 得出，换主色时不漂移。
-     浅色的按下色从 --accent-hover 派生：从 --accent 派生会比悬停色还浅，按下去反而变亮。 */
-  --accent-edge: color-mix(in srgb, var(--accent) 70%, var(--ink));
+  /* 扁平材质：渐变两端同色、受光与投影透明，按钮读起来是纯色块 + 细边框 */
+  --accent-edge: var(--accent);
   --accent-press: color-mix(in srgb, var(--accent-hover) 82%, var(--ink));
-  --accent-base: color-mix(in srgb, var(--accent) 56%, var(--ink));
-  --accent-top: color-mix(in oklab, var(--accent) 97%, white);
-  --accent-hover-top: color-mix(in oklab, var(--accent-hover) 97%, white);
-  --hi: rgba(255, 255, 255, .28);
-  --paper-hi: rgba(255, 255, 255, .9);
+  --accent-base: var(--accent);
+  --accent-top: var(--accent);
+  --accent-hover-top: var(--accent-hover);
+  --hi: transparent;
+  --paper-hi: transparent;
   --paper-top: var(--paper);
-  --paper-foot: color-mix(in oklab, var(--paper) 98.5%, var(--ink));
-  --paper-edge: color-mix(in srgb, var(--ink) 16%, transparent);
-  /* 次按钮按下：纸片被压进桌面，比纸面（也就是悬停时的底色）更深 */
+  --paper-foot: var(--paper);
+  --paper-edge: transparent;
   --paper-press: var(--surface-2);
-  /* 控件边线：--edge 在外框、面板、纸面上都刚过 3:1，--edge-strong 用于底沿与悬停 */
-  --edge: color-mix(in srgb, var(--ink) 49%, transparent);
-  --edge-strong: color-mix(in srgb, var(--ink) 66%, transparent);
-  --lift: rgba(23, 23, 26, .16);
-  --lift-soft: rgba(23, 23, 26, .1);
-  --lift-accent: color-mix(in srgb, var(--accent-edge) 72%, transparent);
-  --sink: rgba(23, 23, 26, .2);
-  --wash: color-mix(in srgb, var(--ink) 6%, transparent);
-  --wash-strong: color-mix(in srgb, var(--ink) 11%, transparent);
-  --danger-edge: color-mix(in srgb, var(--danger) 70%, transparent);
-  --danger-hover: color-mix(in srgb, var(--danger) 86%, var(--ink));
-  --danger-press: color-mix(in srgb, var(--danger) 74%, var(--ink));
+  --edge: var(--rule-strong);
+  --edge-strong: color-mix(in srgb, var(--ink) 30%, transparent);
+  --lift: transparent;
+  --lift-soft: transparent;
+  --lift-accent: transparent;
+  --sink: transparent;
+  --wash: color-mix(in srgb, var(--ink) 5%, transparent);
+  --wash-strong: color-mix(in srgb, var(--ink) 9%, transparent);
+  --danger-edge: var(--danger);
+  --danger-hover: color-mix(in srgb, var(--danger) 88%, var(--ink));
+  --danger-press: color-mix(in srgb, var(--danger) 76%, var(--ink));
 
   background: var(--frame);
   color: var(--ink);
   font: 400 var(--fs-13)/1.55 var(--font-ui);
+  letter-spacing: -.011em;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -116,61 +123,64 @@
 [data-theme="dark"] .paper-ink {
   color-scheme: dark;
 
-  --frame: #111113;
-  --sunken: rgba(0, 0, 0, .25);
-  --surface: #18181C;
-  --surface-2: #222228;
-  --paper: #1D1D22;
+  --frame: #08090A;
+  --sunken: rgba(0, 0, 0, .3);
+  --surface: #0F1011;
+  --surface-2: #17181A;
+  --paper: #1C1D1F;
 
-  --ink: #E6E4DF;
-  --ink-2: #A3A2AB;
-  --ink-3: #8B8A93;
-  --ink-4: #5E5D66;
+  --ink: #F7F8F8;
+  --ink-2: #C7CBD1;
+  --ink-3: #8A8F98;
+  --ink-4: #62666D;
   --rule: rgba(255, 255, 255, .08);
-  --rule-strong: rgba(255, 255, 255, .16);
-  --track: rgba(255, 255, 255, .1);
+  --rule-strong: rgba(255, 255, 255, .14);
+  --track: rgba(255, 255, 255, .12);
 
-  --accent: #A9BEF0;
-  --accent-hover: #C2D1F5;
-  --accent-ink: #111113;
-  --accent-soft: rgba(169, 190, 240, .14);
-  --accent-line: rgba(169, 190, 240, .45);
-  --accent-track: rgba(169, 190, 240, .22);
+  --accent: #5E6AD2;
+  --accent-hover: #6871E0;
+  --accent-ink: #FFFFFF;
+  --accent-soft: rgba(94, 106, 210, .18);
+  --accent-line: rgba(94, 106, 210, .5);
+  --accent-track: rgba(94, 106, 210, .3);
 
-  --ok: #8CC3A2;
-  --ok-soft: rgba(140, 195, 162, .14);
-  --warn: #E7A869;
-  --warn-soft: rgba(231, 168, 105, .14);
-  --danger: #F08A7E;
-  --danger-ink: #111113;
-  --danger-soft: rgba(240, 138, 126, .14);
-  --danger-line: rgba(240, 138, 126, .55);
+  --ok: #6EE7B7;
+  --ok-soft: rgba(110, 231, 183, .14);
+  --warn: #FDB022;
+  --warn-soft: rgba(253, 176, 34, .14);
+  --danger: #FF8F85;
+  --danger-ink: #08090A;
+  --danger-soft: rgba(255, 143, 133, .14);
+  --danger-line: rgba(255, 143, 133, .55);
 
-  --shadow-button: 0 1px 2px rgba(0, 0, 0, .4);
-  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .06), 0 12px 32px -16px rgba(0, 0, 0, .7);
-  --shadow-pop: 0 0 0 1px rgba(255, 255, 255, .08), 0 20px 48px -12px rgba(0, 0, 0, .65);
-  --shadow-seg: 0 1px 2px rgba(0, 0, 0, .5);
-  --scrim: rgba(0, 0, 0, .55);
+  --shadow-button: 0 1px 2px rgba(0, 0, 0, .35);
+  --shadow-panel: 0 0 0 1px rgba(255, 255, 255, .06), 0 12px 32px -18px rgba(0, 0, 0, .7);
+  --shadow-pop: 0 0 0 1px rgba(255, 255, 255, .08), 0 20px 48px -16px rgba(0, 0, 0, .7);
+  --shadow-seg: 0 1px 2px rgba(0, 0, 0, .4);
+  --scrim: rgba(0, 0, 0, .6);
 
-  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, .08), 0 2px 6px -2px rgba(0, 0, 0, .5), 0 32px 72px -24px rgba(0, 0, 0, .8);
-  /* 深色下 --ink 是浅色，外沿与按下要往 --frame 方向压暗 */
-  --accent-edge: color-mix(in srgb, var(--accent) 62%, var(--frame));
-  --accent-press: color-mix(in srgb, var(--accent) 84%, var(--frame));
-  --accent-base: color-mix(in srgb, var(--accent) 48%, var(--frame));
-  --hi: rgba(255, 255, 255, .5);
-  --paper-hi: rgba(255, 255, 255, .06);
-  --paper-top: color-mix(in oklab, var(--paper) 97%, var(--ink));
+  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, .08), 0 2px 8px -4px rgba(0, 0, 0, .5), 0 32px 72px -28px rgba(0, 0, 0, .8);
+
+  --accent-edge: var(--accent);
+  --accent-press: color-mix(in srgb, var(--accent) 82%, var(--frame));
+  --accent-base: var(--accent);
+  --accent-top: var(--accent);
+  --accent-hover-top: var(--accent-hover);
+  --hi: transparent;
+  --paper-hi: transparent;
+  --paper-top: var(--paper);
   --paper-foot: var(--paper);
-  --paper-edge: rgba(0, 0, 0, .55);
-  /* 深色的 --surface-2 比纸面亮，按下要往 --frame 方向压 */
-  --paper-press: color-mix(in srgb, var(--paper) 55%, var(--frame));
-  --edge: color-mix(in srgb, var(--ink) 40%, transparent);
-  --edge-strong: color-mix(in srgb, var(--ink) 56%, transparent);
-  --lift: rgba(0, 0, 0, .5);
-  --lift-soft: rgba(0, 0, 0, .4);
-  --lift-accent: rgba(0, 0, 0, .55);
-  --sink: rgba(0, 0, 0, .45);
+  --paper-edge: transparent;
+  --paper-press: color-mix(in srgb, var(--paper) 60%, var(--frame));
+  --edge: var(--rule-strong);
+  --edge-strong: color-mix(in srgb, var(--ink) 34%, transparent);
+  --lift: transparent;
+  --lift-soft: transparent;
+  --lift-accent: transparent;
+  --sink: transparent;
   --wash: color-mix(in srgb, var(--ink) 7%, transparent);
   --wash-strong: color-mix(in srgb, var(--ink) 12%, transparent);
-  --danger-press: color-mix(in srgb, var(--danger) 80%, var(--frame));
+  --danger-edge: var(--danger);
+  --danger-hover: color-mix(in srgb, var(--danger) 86%, var(--frame));
+  --danger-press: color-mix(in srgb, var(--danger) 76%, var(--frame));
 }

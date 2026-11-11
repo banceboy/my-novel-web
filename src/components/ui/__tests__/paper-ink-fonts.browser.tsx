@@ -23,10 +23,10 @@ describe('纸墨字体自洽', () => {
     expect(number?.status).toBe('loaded')
   })
 
-  it('界面字体按 Noto Sans SC、Microsoft YaHei UI、PingFang SC、system-ui 回退', () => {
+  it('界面字体按 Inter、Noto Sans SC、Microsoft YaHei UI、PingFang SC、system-ui 回退', () => {
     host = document.createElement('div')
     host.className = 'paper-ink'
     document.body.append(host)
-    expect(getComputedStyle(host).fontFamily).toBe('"Noto Sans SC", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif')
+    expect(getComputedStyle(host).fontFamily).toBe('Inter, "Noto Sans SC", "Microsoft YaHei UI", "PingFang SC", system-ui, sans-serif')
   })
 })

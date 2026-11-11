@@ -25,8 +25,8 @@ import { withReducedMotion } from './reduced-motion'
 ;(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 
 const SHOTS = '../../../../.runtime/rdv-shots'
-const DARK = { layer: 'rgb(29, 29, 34)', ink: 'rgb(230, 228, 223)', danger: 'rgb(240, 138, 126)', accent: 'rgb(169, 190, 240)' }
-const LIGHT = { ink: 'rgb(23, 23, 26)', accent: 'rgb(44, 74, 140)' }
+const DARK = { layer: 'rgb(28, 29, 31)', ink: 'rgb(247, 248, 248)', danger: 'rgb(255, 143, 133)', accent: 'rgb(94, 106, 210)' }
+const LIGHT = { ink: 'rgb(26, 26, 26)', accent: 'rgb(94, 106, 210)' }
 
 const wait = (ms: number) => act(async () => { await new Promise(resolve => setTimeout(resolve, ms)) })
 /**
@@ -679,7 +679,7 @@ describe('清除生成内容', () => {
     const [consequence, recover, advice] = dialog.querySelectorAll<HTMLElement>('.pi-dialog-consequence > p')
     expect(consequence.textContent).toBe('将清除 3 类内容：故事架构与大纲、章节蓝图、草稿、定稿与审稿产物。')
     expect(recover.textContent).toBe('清除后不会自动恢复。')
-    expect(getComputedStyle(recover).color).toBe('rgb(180, 35, 24)')
+    expect(getComputedStyle(recover).color).toBe('rgb(217, 45, 32)')
     expect(advice.textContent).toBe('若需要保留当前内容，请先复制到外部文件或导出项目备份。')
     expect(getComputedStyle(advice).color).toBe(LIGHT.ink)
     const boxes = [...dialog.querySelectorAll<HTMLElement>('.pi-check-row > .pi-check')]

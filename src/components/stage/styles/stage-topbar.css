@@ -15,21 +15,21 @@
 }
 
 .stage-brand {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   flex: none;
   display: grid;
   place-items: center;
-  border-radius: 6px;
-  background: var(--ink);
+  border-radius: 7px;
+  background: var(--accent);
 }
 
-/* 书页精灵：单色剪影，眼睛是镂空，透出底色；颜色跟令牌走，深浅主题自动反转 */
+/* 品牌剪影：强调色方块里挖出的单色图形，颜色跟令牌走，深浅主题自动反转 */
 .stage-brand::before {
   content: "";
   width: 15px;
   height: 16px;
-  background: var(--frame);
+  background: var(--accent-ink);
   mask: url("../../../assets/brand/pagekin-mark.svg") center / contain no-repeat;
 }
 

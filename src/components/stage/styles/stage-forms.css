@@ -1,5 +1,5 @@
 /* ================= 表单控件（设定页、设置页共用） ================= */
-/* 画板 Setup.dc.html 的 .ctl 与 .chip：40px 高、10px 圆角的纸面控件，标签按钮为胶囊。 */
+/* Northstar：36px 高、8px 圆角的细边框控件，标签按钮为胶囊。 */
 .stage-shell .stage-select,
 .stage-shell .stage-setup .pi-input,
 .stage-shell .stage-settings .pi-input {

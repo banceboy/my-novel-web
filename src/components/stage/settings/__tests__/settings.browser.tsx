@@ -274,7 +274,7 @@ describe('设置页', () => {
     await mount()
     const radios = () => [...host!.querySelectorAll<HTMLButtonElement>('[role="radiogroup"][aria-label="主题"] [role="radio"]')]
     expect(radios().map(radio => [radio.textContent, radio.getAttribute('aria-checked'), radio.tabIndex]))
-      .toEqual([['浅色纸面与墨色', 'true', 0], ['深色夜里写作', 'false', -1]])
+      .toEqual([['白天白色背景', 'true', 0], ['黑夜黑色背景', 'false', -1]])
 
     radios()[0].focus()
     await key('ArrowRight', radios()[0], { altKey: true })

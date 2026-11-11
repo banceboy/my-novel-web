@@ -126,7 +126,7 @@ interface ThemeState {
 /** Legacy-facing projection only; appearance-bootstrap owns all persistence. */
 export function createThemeStore(appearance: AppearanceStore = useAppearanceStore) {
   const store = create<ThemeState>()((set, get) => ({
-    theme: 'light', resolvedTheme: 'light', zoom: 1, writingFont: 'lxgw-wenkai', uiFont: 'noto-sans-sc',
+    theme: 'dark', resolvedTheme: 'dark', zoom: 1, writingFont: 'noto-sans-sc', uiFont: 'inter',
     setTheme: theme => { appearance.getState().update({ colorTheme: theme }) },
     initTheme: () => {
       const state = appearance.getState()

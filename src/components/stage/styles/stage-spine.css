@@ -211,7 +211,8 @@
 }
 
 .stage-chapter-no {
-  font: italic 14px/1 var(--font-num);
+  font: 600 12px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
   color: var(--ink-3);
 }
 

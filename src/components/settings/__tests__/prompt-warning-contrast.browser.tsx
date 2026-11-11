@@ -20,8 +20,8 @@ afterEach(async () => {
 
 describe('readable warning copy', () => {
   it.each([
-    ['light', 'rgb(122, 84, 20)'],
-    ['dark', 'rgb(204, 167, 0)'],
+    ['light', 'rgb(181, 71, 8)'],
+    ['dark', 'rgb(253, 176, 34)'],
   ])('renders warning badge copy with readable %s theme text', async (theme, expectedText) => {
     container = document.createElement('div')
     container.className = theme
@@ -34,8 +34,8 @@ describe('readable warning copy', () => {
   })
 
   it.each([
-    ['light', 'rgb(56, 96, 66)', 'rgb(143, 48, 32)'],
-    ['dark', 'rgb(137, 209, 133)', 'rgb(255, 138, 138)'],
+    ['light', 'rgb(11, 98, 91)', 'rgb(180, 35, 24)'],
+    ['dark', 'rgb(110, 231, 183)', 'rgb(255, 143, 133)'],
   ])('renders success and error badge information with readable %s theme semantics', async (theme, successText, errorText) => {
     container = document.createElement('div')
     container.className = theme

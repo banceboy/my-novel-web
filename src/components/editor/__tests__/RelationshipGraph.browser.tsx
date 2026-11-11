@@ -98,8 +98,8 @@ describe('RelationshipGraph readable theme text', () => {
   })
 
   it.each([
-    ['light', 'rgb(43, 42, 38)'],
-    ['dark', 'rgb(212, 212, 212)'],
+    ['light', 'rgb(26, 26, 26)'],
+    ['dark', 'rgb(247, 248, 248)'],
   ])('renders character names with the %s theme text semantic', async (theme, expectedTextColor) => {
     container.className = theme
 
@@ -123,8 +123,8 @@ describe('RelationshipGraph readable theme text', () => {
   })
 
   it.each([
-    ['light', '#6E6A5F'],
-    ['dark', '#A0A0A0'],
+    ['light', '#454545'],
+    ['dark', '#C7CBD1'],
   ])('renders relationship labels with the readable %s secondary-text semantic', async (theme, expectedTextColor) => {
     container.className = theme
 
@@ -377,7 +377,7 @@ describe('RelationshipGraph readable theme text', () => {
     const canvas = container.querySelector('canvas')
     expect(canvas).not.toBeNull()
     expect(fillTextCalls.filter((call) => call.text === '林墨').at(-1)?.fillStyle)
-      .toBe('rgb(43, 42, 38)')
+      .toBe('rgb(26, 26, 26)')
 
     fillTextCalls = []
     document.documentElement.classList.add('dark')
@@ -385,7 +385,7 @@ describe('RelationshipGraph readable theme text', () => {
 
     expect(container.querySelector('canvas')).toBe(canvas)
     expect(fillTextCalls.filter((call) => call.text === '林墨').at(-1)?.fillStyle)
-      .toBe('rgb(212, 212, 212)')
+      .toBe('rgb(247, 248, 248)')
   })
 
   it('redraws the mounted canvas when the paper-ink root switches theme inside the stage shell', async () => {

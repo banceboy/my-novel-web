@@ -125,7 +125,7 @@ const REFERENCE_IMPORT_FAILURES: Readonly<Record<string, readonly [zhCN: string,
   EMBEDDING_SPACE_UNREGISTERED_DATA: INDEX_DAMAGED,
   EMBEDDING_SPACE_BUSY: ['检索索引正在建立，请稍后再试。', 'The search index is being built. Try again in a moment.'],
   KNOWLEDGE_BASE_VOLUME_UNSUPPORTED: [
-    '资料没有收进知识库：作品文件夹所在的磁盘不支持知识库要用的文件操作，常见于 exFAT、FAT32 格式的移动硬盘和 U 盘。请退出书童，把整个作品文件夹移到 NTFS 格式的磁盘（Mac 上用 APFS 格式），打开新位置的作品后再导入。',
+    '资料没有收进知识库：作品文件夹所在的磁盘不支持知识库要用的文件操作，常见于 exFAT、FAT32 格式的移动硬盘和 U 盘。请退出小书童，把整个作品文件夹移到 NTFS 格式的磁盘（Mac 上用 APFS 格式），打开新位置的作品后再导入。',
     "The material was not added to the knowledge base: the drive holding this book's folder does not support a file operation the knowledge base needs. This is common on external drives and USB sticks formatted as exFAT or FAT32. Quit Pagekin, move the whole book folder to an NTFS drive (APFS on a Mac), open the book from its new location, then import again.",
   ],
 }

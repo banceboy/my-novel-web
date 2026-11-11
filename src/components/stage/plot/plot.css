@@ -257,7 +257,7 @@
 }
 
 tr[data-role='subplot'] .stage-plot-cell[data-inside]::before {
-  background: repeating-linear-gradient(90deg, var(--rule-strong) 0 6px, transparent 6px 10px);
+  background: var(--sunken);
 }
 
 .stage-plot-event {

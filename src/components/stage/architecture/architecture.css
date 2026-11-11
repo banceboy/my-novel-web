@@ -86,7 +86,8 @@
 .arch-section-num {
   justify-self: center;
   color: var(--ink-3);
-  font: italic var(--fs-20)/1 var(--font-num);
+  font: 600 var(--fs-20)/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
 }
 
 .arch-section-heading {

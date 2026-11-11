@@ -1,13 +1,13 @@
 /* ================= 书房 ================= */
-/* 视觉基准 claude-design/Library.dc.html：左侧开始与书架，右侧作品概览与更新提示。 */
+/* Northstar 布局：左侧开始与作品卡片，右侧作品概览与更新提示；层次只靠细边框和浅底色。 */
 .stage-shell {
-  --stage-card-drop: 0 0 0 1px var(--rule), 0 18px 40px -28px color-mix(in srgb, var(--ink) 35%, transparent);
-  --stage-cover-drop: 0 18px 30px -22px color-mix(in srgb, var(--ink) 45%, transparent);
+  --stage-card-drop: 0 0 0 1px var(--rule);
+  --stage-cover-drop: 0 0 0 1px var(--rule);
 }
 
 .stage-shell[data-theme='dark'] {
-  --stage-card-drop: 0 0 0 1px var(--rule), 0 18px 40px -24px color-mix(in srgb, var(--frame) 92%, transparent);
-  --stage-cover-drop: 0 18px 30px -18px color-mix(in srgb, var(--frame) 95%, transparent);
+  --stage-card-drop: 0 0 0 1px var(--rule);
+  --stage-cover-drop: 0 0 0 1px var(--rule);
 }
 
 .stage-eyebrow {
@@ -85,20 +85,20 @@
     background-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
 }
 
-/* 导入卡是菜单触发的纸墨文字按钮，悬停、按下、展开都要在这里写全，才与另两张原生按钮的卡一个样子 */
+/* 导入卡由菜单触发，悬停、按下、展开都要写全，才与另两张原生按钮的卡一致 */
 .stage-library .stage-start:hover:not(:active, [aria-expanded='true'], :focus-visible) {
   background: var(--paper);
   border-color: color-mix(in srgb, var(--ink) 22%, transparent);
   box-shadow: var(--shadow-button);
 }
 
-/* 按下：纸片压进桌面，与次按钮同一个按下色 */
+/* 按下与展开只换底色和边线，不再做「纸片压进桌面」的位移 */
 .stage-library .stage-start:active,
 .stage-library .stage-start[aria-expanded='true'] {
   background: var(--paper-press);
   border-color: color-mix(in srgb, var(--ink) 22%, transparent);
-  box-shadow: inset 0 1px 2px var(--sink);
-  transform: translateY(1px);
+  box-shadow: none;
+  transform: none;
 }
 
 .stage-library .stage-start:focus-visible {
@@ -174,113 +174,89 @@
   min-width: 0;
 }
 
-/* 封面色从令牌调出：深蓝、沙、灰绿、赭石与素纸，深色主题下随令牌一起翻转。 */
-.stage-book[data-tone='navy'] { --cover: color-mix(in srgb, var(--accent) 45%, var(--ink)); --cover-ink: var(--frame); }
-.stage-book[data-tone='sand'] { --cover: color-mix(in srgb, var(--warn) 8%, var(--surface-2)); --cover-ink: color-mix(in srgb, var(--warn) 18%, var(--ink)); }
-.stage-book[data-tone='sage'] { --cover: color-mix(in srgb, var(--ok) 13%, var(--frame)); --cover-ink: color-mix(in srgb, var(--ok) 30%, var(--ink)); }
-.stage-book[data-tone='umber'] { --cover: color-mix(in srgb, var(--warn) 11%, var(--ink)); --cover-ink: var(--frame); }
-.stage-book[data-tone='paper'] { --cover: var(--paper); --cover-ink: var(--ink); }
+/* 封面统一走冷调令牌：同一靛紫强调色配中性灰阶，深色主题一起翻转，不再用暖色布面色板。 */
+.stage-book[data-tone='navy'] { --cover: var(--accent); --cover-ink: var(--frame); }
+.stage-book[data-tone='sand'] { --cover: color-mix(in srgb, var(--accent) 28%, var(--surface-2)); --cover-ink: var(--ink); }
+.stage-book[data-tone='sage'] { --cover: color-mix(in srgb, var(--accent) 12%, var(--surface-2)); --cover-ink: var(--ink); }
+.stage-book[data-tone='umber'] { --cover: color-mix(in srgb, var(--ink) 82%, var(--accent)); --cover-ink: var(--frame); }
+.stage-book[data-tone='paper'] { --cover: var(--surface-2); --cover-ink: var(--ink); }
 
-/* 深色主题下封面仍是深色的布面，只带一点色相，文字用墨色。 */
-.stage-shell[data-theme='dark'] .stage-book { --cover-ink: var(--ink); }
-.stage-shell[data-theme='dark'] .stage-book[data-tone='navy'] { --cover: color-mix(in srgb, var(--accent) 20%, var(--paper)); }
-.stage-shell[data-theme='dark'] .stage-book[data-tone='sand'] { --cover: color-mix(in srgb, var(--warn) 13%, var(--paper)); }
-.stage-shell[data-theme='dark'] .stage-book[data-tone='sage'] { --cover: color-mix(in srgb, var(--ok) 14%, var(--paper)); }
-.stage-shell[data-theme='dark'] .stage-book[data-tone='umber'] { --cover: color-mix(in srgb, var(--warn) 8%, var(--frame)); }
-.stage-shell[data-theme='dark'] .stage-book[data-tone='paper'] { --cover: var(--surface-2); }
+/* 深色主题：所有卡片都从近黑面板起底，只带一点靛紫；文字取浅色，避免亮底卡片刺眼。
+   data-theme 可能挂在外壳或 .paper-ink 宿主上，两种挂法都要覆盖。 */
+:is(.stage-shell[data-theme='dark'], .paper-ink[data-theme='dark']) .stage-book[data-tone='navy'] { --cover: color-mix(in srgb, var(--accent) 26%, var(--paper)); --cover-ink: var(--ink); }
+:is(.stage-shell[data-theme='dark'], .paper-ink[data-theme='dark']) .stage-book[data-tone='sand'] { --cover: color-mix(in srgb, var(--accent) 16%, var(--paper)); --cover-ink: var(--ink); }
+:is(.stage-shell[data-theme='dark'], .paper-ink[data-theme='dark']) .stage-book[data-tone='sage'] { --cover: color-mix(in srgb, var(--accent) 8%, var(--paper)); --cover-ink: var(--ink); }
+:is(.stage-shell[data-theme='dark'], .paper-ink[data-theme='dark']) .stage-book[data-tone='umber'] { --cover: color-mix(in srgb, var(--accent) 4%, var(--surface-2)); --cover-ink: var(--ink); }
+:is(.stage-shell[data-theme='dark'], .paper-ink[data-theme='dark']) .stage-book[data-tone='paper'] { --cover: var(--surface-2); --cover-ink: var(--ink); }
 
+/* 作品卡片：扁平细边框、横排标题；不再模拟实体书的书脊、投影与抬起。 */
 .stage-book-cover {
   position: relative;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 3;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: stretch;
   gap: var(--s-2);
-  padding: var(--s-4) var(--s-4);
-  border: 0;
-  border-radius: var(--radius) var(--radius-lg) var(--radius-lg) var(--radius);
+  padding: var(--s-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
   background: var(--cover);
   color: var(--cover-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  box-shadow:
-    inset 6px 0 0 color-mix(in srgb, var(--cover-ink) 10%, transparent),
-    0 0 0 1px var(--rule),
-    var(--stage-cover-drop);
-  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  box-shadow: none;
+  transition: border-color var(--dur-fast) var(--ease), background-color var(--dur-fast) var(--ease);
 }
 
-.stage-book-cover:hover {
-  transform: translateY(-3px);
-}
-
-/* 按下：从悬停的抬起落回大半，像把书按回书架 */
-.stage-book-cover:active {
-  transform: translateY(-1px);
-  transition-duration: var(--dur-fast);
-}
+.stage-book-cover:hover { border-color: var(--accent); }
+.stage-book-cover:active { background-color: color-mix(in srgb, var(--cover) 88%, var(--ink)); border-color: var(--accent); }
 
 .stage-book[data-selected] .stage-book-cover {
-  box-shadow:
-    inset 6px 0 0 color-mix(in srgb, var(--cover-ink) 10%, transparent),
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--accent),
-    var(--stage-cover-drop);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-/* 选中的书本身就是一圈强调色，聚焦时在外面再套一圈，键盘停在哪本书上看得出来 */
+/* 选中的卡片自带一圈强调色，聚焦时在外面再套一圈，键盘停在哪张卡上看得出来 */
 .stage-book[data-selected] .stage-book-cover:focus-visible {
   outline: none;
-  box-shadow:
-    inset 6px 0 0 color-mix(in srgb, var(--cover-ink) 10%, transparent),
-    0 0 0 2px var(--surface),
-    0 0 0 4px var(--accent),
-    0 0 0 6px var(--surface),
-    0 0 0 8px var(--accent),
-    var(--stage-cover-drop);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent);
 }
 
 .stage-book-cover:focus-visible {
   outline: none;
-  box-shadow: inset 6px 0 0 color-mix(in srgb, var(--cover-ink) 10%, transparent), var(--focus-ring);
+  box-shadow: var(--focus-ring);
 }
 
 .stage-book-kicker {
   min-height: 1em;
   font-size: var(--fs-11);
-  letter-spacing: .2em;
+  letter-spacing: .1em;
   opacity: .72;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
-.stage-book-title {
+/* 标题一律横排、单行省略：中文不再竖排，长书名也不在卡片里被拆成碎行 */
+.stage-book-title,
+.stage-book-title[data-script='cjk'],
+.stage-book-title[data-script='latin'] {
   flex: 1;
   min-height: 0;
+  display: block;
   overflow: hidden;
-  font: 600 var(--fs-24)/1.25 var(--font-display);
-  letter-spacing: .12em;
-}
-
-.stage-book-title[data-script='cjk'] {
-  align-self: flex-end;
-  writing-mode: vertical-rl;
-}
-
-.stage-book-title[data-script='latin'] {
-  display: flex;
-  align-items: flex-end;
-  font-size: var(--fs-20);
-  letter-spacing: .02em;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font: 600 var(--fs-16)/1.4 var(--font-ui);
+  letter-spacing: -.01em;
 }
 
 .stage-book-figure {
   min-height: 1em;
-  font-size: var(--fs-16);
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
   opacity: .78;
 }
 
@@ -423,7 +399,7 @@
   padding: var(--s-3) var(--s-4);
   border-radius: var(--radius-lg);
   background: var(--surface);
-  font: var(--fs-16)/1.9 var(--font-prose);
+  font: var(--fs-14)/1.65 var(--font-prose);
   color: color-mix(in srgb, var(--ink) 80%, var(--ink-2));
 }
 

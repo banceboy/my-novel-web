@@ -493,10 +493,10 @@ describe('写作此章弹层', () => {
     const ring = (element: Element) => getComputedStyle(element).boxShadow
     await userEvent.tab()
     expect(document.activeElement?.textContent).toBe('写第 5 章')
-    expect(ring(document.activeElement!)).toMatch(/^rgb\(255, 254, 251\) 0px 0px 0px 2px, rgb\(44, 74, 140\) 0px 0px 0px 4px, /)
+    expect(ring(document.activeElement!)).toMatch(/^rgb\(255, 255, 255\) 0px 0px 0px 2px, rgb\(94, 106, 210\) 0px 0px 0px 4px, /)
     await userEvent.tab()
     expect(document.activeElement?.getAttribute('aria-label')).toBe('本次写作选项')
-    expect(ring(document.activeElement!)).toMatch(/^rgb\(255, 254, 251\) 0px 0px 0px 2px, rgb\(44, 74, 140\) 0px 0px 0px 4px, /)
+    expect(ring(document.activeElement!)).toMatch(/^rgb\(255, 255, 255\) 0px 0px 0px 2px, rgb\(94, 106, 210\) 0px 0px 0px 4px, /)
   })
 
   it('拆分主按钮：开始写作期间主体是加载中（aria-busy）而不是退成未上墨，箭头半边不带 aria-busy', async () => {

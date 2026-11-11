@@ -48,9 +48,9 @@ describe('旧皮肤', () => {
 })
 
 describe('更早的主题键迁到 v3', () => {
-  it('没有任何旧配置时是初始的浅色偏好', () => {
-    expect(migrateLegacyAppearance(null, 'dark')).toEqual(INITIAL_APPEARANCE)
-    expect(INITIAL_APPEARANCE.colorTheme).toBe('light')
+  it('没有任何旧配置时是初始的深色偏好', () => {
+    expect(migrateLegacyAppearance(null, 'light')).toEqual(INITIAL_APPEARANCE)
+    expect(INITIAL_APPEARANCE.colorTheme).toBe('dark')
   })
 
   it.each([
@@ -67,7 +67,7 @@ describe('更早的主题键迁到 v3', () => {
   it('字体与缩放照搬，旧字体默认值版本只作来源记录', () => {
     expect(migrateLegacyAppearance(JSON.stringify({ state: {
       theme: 'paper', zoom: 1.25, writingFont: 'lxgw-wenkai', uiFont: 'noto-sans-sc', fontDefaultsVersion: 0,
-    }, version: 1 }), 'light')).toEqual({ ...INITIAL_APPEARANCE, colorTheme: 'light', zoom: 1.25, legacyFontDefaultsVersion: 0 })
+    }, version: 1 }), 'light')).toEqual({ ...INITIAL_APPEARANCE, colorTheme: 'light', zoom: 1.25, writingFont: 'lxgw-wenkai', uiFont: 'noto-sans-sc', legacyFontDefaultsVersion: 0 })
   })
 
   it.each(['{bad-json', '{"state":null}', '{"version":9,"state":{}}', '{"state":{"writingFont":"future-font"}}', '{"state":{"zoom":9}}',

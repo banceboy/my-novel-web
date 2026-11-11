@@ -14,8 +14,8 @@ afterEach(() => container.remove())
 
 describe('Agent tool information text contrast', () => {
   it.each([
-    ['light', 'rgb(56, 96, 66)', 'rgb(143, 48, 32)', 'rgb(122, 84, 20)', 'rgb(43, 42, 38)', 'rgb(82, 122, 91)', 'rgb(181, 64, 44)', 'rgb(198, 138, 58)', 'rgb(255, 255, 255)'],
-    ['dark', 'rgb(137, 209, 133)', 'rgb(255, 138, 138)', 'rgb(204, 167, 0)', 'rgb(212, 212, 212)', 'rgb(137, 209, 133)', 'rgb(241, 76, 76)', 'rgb(204, 167, 0)', 'rgb(24, 24, 24)'],
+    ['light', 'rgb(11, 98, 91)', 'rgb(180, 35, 24)', 'rgb(181, 71, 8)', 'rgb(26, 26, 26)', 'rgb(15, 118, 110)', 'rgb(217, 45, 32)', 'rgb(181, 71, 8)', 'rgb(255, 255, 255)'],
+    ['dark', 'rgb(110, 231, 183)', 'rgb(255, 143, 133)', 'rgb(253, 176, 34)', 'rgb(247, 248, 248)', 'rgb(110, 231, 183)', 'rgb(255, 143, 133)', 'rgb(253, 176, 34)', 'rgb(8, 9, 10)'],
   ])('uses readable semantic copy while retaining decorative status icons in %s', (theme, successText, errorText, warningText, ordinaryText, successDecoration, errorDecoration, warningDecoration, successForeground) => {
     container.className = theme
     container.innerHTML = `
@@ -31,16 +31,20 @@ describe('Agent tool information text contrast', () => {
     `
 
     const color = (selector: string) => getComputedStyle(container.querySelector(selector)!).color
-    expect(color('.tool-call-source-badge.builtin')).toBe(ordinaryText)
-    expect(color('.tool-call-source-badge.mcp')).toBe(ordinaryText)
-    expect(color('.tool-call-source-badge.skill')).toBe(successText)
-    expect(color('.tool-call-status:has(> .completed) > span')).toBe(successText)
-    expect(color('.tool-call-status:has(> .failed) > span')).toBe(errorText)
-    expect(color('.tool-call-status:has(> .waiting_confirm) > span')).toBe(warningText)
-
-    expect(color('svg.completed')).toBe(successDecoration)
-    expect(color('svg.failed')).toBe(errorDecoration)
-    expect(color('svg.waiting_confirm')).toBe(warningDecoration)
-    expect(color('.confirm-card-btn.approve')).toBe(successForeground)
+    expect([
+      color('.tool-call-source-badge.builtin'),
+      color('.tool-call-source-badge.mcp'),
+      color('.tool-call-source-badge.skill'),
+      color('.tool-call-status:has(> .completed) > span'),
+      color('.tool-call-status:has(> .failed) > span'),
+      color('.tool-call-status:has(> .waiting_confirm) > span'),
+      color('svg.completed'),
+      color('svg.failed'),
+      color('svg.waiting_confirm'),
+      color('.confirm-card-btn.approve'),
+    ]).toEqual([
+      ordinaryText, ordinaryText, successText, successText, errorText, warningText,
+      successDecoration, errorDecoration, warningDecoration, successForeground,
+    ])
   })
 })

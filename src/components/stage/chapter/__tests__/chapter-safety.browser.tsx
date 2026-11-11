@@ -884,7 +884,7 @@ describe('纸面', () => {
     await expect.element(page.getByText('雨从傍晚开始就没有停过。')).toBeVisible()
     const lines = [...host!.querySelectorAll<HTMLElement>('.stage-ch-prose .cm-line')]
     expect(lines.map(line => [line.textContent, getComputedStyle(line).textIndent])).toEqual([
-      ['雨从傍晚开始就没有停过。', '36px'],
+      ['雨从傍晚开始就没有停过。', '34px'],
       ['', '0px'],
       ['  最后一班列车晚点了十七分钟。', '0px'],
     ])
@@ -898,7 +898,7 @@ describe('纸面', () => {
     await openDraft(draft.id)
     await expect.element(page.getByText('雨从傍晚开始就没有停过。')).toBeVisible()
     const lines = [...host!.querySelectorAll<HTMLElement>('.stage-ch-prose .cm-line')].filter(line => line.textContent)
-    expect(lines.map(line => getComputedStyle(line).textIndent)).toEqual(['0px', '36px', '0px', '36px', '0px', '0px', '0px', '36px'])
+    expect(lines.map(line => getComputedStyle(line).textIndent)).toEqual(['0px', '34px', '0px', '34px', '0px', '0px', '0px', '34px'])
     expect(activeTab()?.content).toBe(content)
   })
 
@@ -949,7 +949,7 @@ describe('纸面', () => {
     const lines = [...host!.querySelectorAll<HTMLElement>('.stage-ch-prose .cm-line')].filter(line => line.textContent)
     expect(lines.map(line => [line.textContent, getComputedStyle(line).textIndent])).toEqual([
       ...breaks.map(line => [line, '0px']),
-      ...prose.map(line => [line, '36px']),
+      ...prose.map(line => [line, '34px']),
     ])
     expect(activeTab()?.content).toBe(content)
   })

@@ -1,8 +1,8 @@
 /*
- * 正文单章视图。视觉基准为 claude-design/Main.dc.html 的纸面与审稿侧页、Focus.dc.html 的沉浸写作与选区工具条；
- * 待写、合并、定稿确认与定稿视图的结构按 prototype/chapter-*.html。只引用纸墨令牌。
- * 审稿侧页与运行侧页同一时间只开一个，审稿侧页总是与纸面并排、从不覆盖正文（运行侧页在面板放不下时浮起，见 stage-panel.css）；
- * page 容器查询按纸面可用宽度收紧版心。
+ * 正文单章视图：阅读卡片 + 审稿侧页 + 沉浸写作与选区工具条。
+ * 待写、合并、定稿确认与定稿视图沿用原有结构；样式只引用 Northstar 设计令牌。
+ * 审稿侧页与运行侧页同一时间只开一个，审稿侧页总是与正文并排、从不覆盖正文
+ * （运行侧页在面板放不下时浮起，见 stage-panel.css）；page 容器查询按可用宽度收紧正文。
  */
 .stage-ch {
   position: relative;
@@ -19,12 +19,13 @@
   container: page / inline-size;
 }
 
-/* 纸面宽度取版心加左右留白，1280 宽时正文一行正好 34 字 */
+/* 正文卡片按阅读行宽定宽：细边框、8px 圆角，不再做稿纸版心 */
 .stage-ch-page {
-  max-width: calc(34 * var(--prose-size) + 144px);
+  max-width: min(880px, 100%);
   margin: 0 auto;
-  padding: 52px 72px 88px;
-  border-radius: var(--radius-sm);
+  padding: 40px 56px 72px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-control);
   background: var(--paper);
   box-shadow: var(--shadow-panel);
 }
@@ -41,13 +42,15 @@
 }
 
 .stage-ch-numeral {
-  font: italic 400 64px/0.8 var(--font-num);
-  color: var(--ink);
+  font: 600 40px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
 }
 
 .stage-ch-eyebrow {
-  font: 400 var(--fs-12) var(--font-display);
-  letter-spacing: .2em;
+  font: 500 var(--fs-11)/1.4 var(--font-ui);
+  letter-spacing: .12em;
+  text-transform: uppercase;
   color: var(--ink-3);
 }
 
@@ -659,13 +662,13 @@
   white-space: pre-wrap;
 }
 
-/* ================= 沉浸写作：只留正文与章节动作条，纸面全出血（Focus.dc.html） ================= */
+/* ================= 沉浸写作：只留正文与章节动作条，纯色全出血 ================= */
 .stage-shell[data-focus] .stage-panel:has(.stage-ch) {
   --focus-paper: var(--paper);
   margin: 0;
   border-radius: 0;
   box-shadow: none;
-  background: radial-gradient(1100px 520px at 50% -160px, var(--accent-soft), transparent 70%), var(--focus-paper);
+  background: var(--focus-paper);
 }
 
 /* 深色下全出血的纸面就是应用底色，与画板一致 */

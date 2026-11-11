@@ -48,7 +48,7 @@ describe('选区工具条', () => {
     expect([bar.classList.contains('paper-ink'), bar.dataset.theme]).toEqual([true, 'dark'])
     expect([...bar.querySelectorAll('button')].map(button => [button.textContent, button.classList.contains('pi-btn')]))
       .toEqual([['润色', true], ['扩写', true], ['续写', true], ['改成对话', true], ['按意见改', true]])
-    expect(getComputedStyle(bar).backgroundColor).toBe('rgb(24, 24, 28)')
+    expect(getComputedStyle(bar).backgroundColor).toBe('rgb(15, 16, 17)')
   })
 
   it('编辑器随内容长高、由外层纸面滚动时，选区滚出纸面可见范围后工具条收起', async () => {

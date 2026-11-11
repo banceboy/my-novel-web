@@ -21,10 +21,10 @@ const legacyPrefixPattern = new RegExp('ve' + 'la-', 'i')
 const formerNamePattern = /AI ?小说作家|AI Novel Writer/
 
 describe('APP_BRAND', () => {
-  it('uses 书童 / Pagekin visible product language', () => {
-    expect(APP_BRAND.zhName).toBe('书童')
+  it('uses 小书童 / Pagekin visible product language', () => {
+    expect(APP_BRAND.zhName).toBe('小书童')
     expect(APP_BRAND.enName).toBe('Pagekin')
-    expect(APP_BRAND.shortName).toBe('书童')
+    expect(APP_BRAND.shortName).toBe('小书童')
     expect(Object.values(APP_BRAND).join(' ')).not.toMatch(legacyNamePattern)
   })
 
